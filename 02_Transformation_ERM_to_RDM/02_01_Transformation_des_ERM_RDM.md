@@ -1,10 +1,24 @@
 
+
+
+
 # 1 Grundlagen_der_Transformation_des_ERM_RDM
+
+
+- Es sollte eine minimale Anzahl an Relationen erzeugt werden, da viele Relationen das Anfrageverhalten und die Übersicht negativ beeinflussen können
+- Möglichst die komplette Information aus dem konzeptuellen Schema soll im logischen Schema nutzbar gemacht werden.
+- Die Abbildung der Modellelemente des ERM auf die Modellelemente des Relationalen Datenmodells sollte verständlich und nachvollziehbar sein.
+- Die richtigen Antworten sind: Möglichst die komplette Information aus dem konzeptuellen Schema soll im logischen Schema nutzbar gemacht werden.
+
+
 
 Phasenmodell 
 ![](image/Pasted%20image%2020241113104639.png)
 
 ![](image/Pasted%20image%2020241113103317.png)
+
+
+
 
 
  konzeptuelle Schema (ER Modelle) -> Logsiche Schema -> Datenmodell 
@@ -39,7 +53,12 @@ Phasenmodell
 
 
 ### 2.3.1 Ein Beziehungstyp der Kardinalität 1:1
-Ein Beziehungstyp der Kardinalität 1:1 Wird über einen ==Fremdschlüssel== abgebildet: Der Primärschlüssel eines (beliebigen) Entitätentyps, der an der Beziehung teilnimmt, Wird als Fremdschlüssel in der Relation des anderen Entitätentyps verwendet.
+
+- 不需要额外的table for Bezihung 
+- FS zu beliebig Seite
+
+
+Ein Beziehungstyp der Kardinalität 1:1 Wird über einen ==Fremdschlüssel== abgebildet: Der Primärschlüssel eines (beliebigen) Entitätentyps, der an der Beziehung teilnimmt, Wird als Fremdschlüssel in der Relation ==des beliebige anderen Entitätentyps== verwendet.
 
 Franchbereich 必须至少有有一个 dozent
 反映到 zielschema 中 就是 Fachbereich 中必须有一个 attribute Dekan 系主任
@@ -47,9 +66,20 @@ Franchbereich 必须至少有有一个 dozent
 ![](image/Pasted%20image%2020241113110325.png)
 
 
-### 2.3.2 Ein Beziehungstyp der Kardinalität 1:N
+### 2.3.2 Ein Beziehungstyp der Kardinalität 1:N oder N:1
 
-Ein Beziehungstyp der Kardinalität I:N Wird über einen Fremdschlüssel abgebildet: Der Primärschlüssel des Entitätentyps der 1-Seite, der an der Beziehung teilnimmt, Wird als Fremdschlüssel in der Relation des Entitätentyps der N-Seite verwendet.
+不需要一个Schema table ,  
+FS 放到N seite 
+
+---
+那边是 N Seite 
+
+
+
+
+---
+
+Ein Beziehungstyp der Kardinalität I:N Wird über einen Fremdschlüssel abgebildet: Der Primärschlüssel des Entitätentyps der 1-Seite, der an der Beziehung teilnimmt, Wird als Fremdschlüssel in der Relation des Entitätentyps der ==N-Seite== verwendet.
 
 > Key point ist toc chose the suitable Entitattyp as intermediary 
 > Der Schlüssel für eine Redundanzarm 
@@ -57,6 +87,9 @@ Ein Beziehungstyp der Kardinalität I:N Wird über einen Fremdschlüssel abgebil
 ![](image/Pasted%20image%2020241113111508.png)
 
 ### 2.3.3 Beziehungstyp der Kardinalität M:N
+
+需要一个table,  FS von linker Seite und rechte Seite 都填到这个 新的 
+0 Tabelle 中 
 
 `(0, *) ` 的关系就是 对应的是1kardinalität M:N 
 
