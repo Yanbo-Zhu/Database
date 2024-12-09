@@ -47,10 +47,10 @@ Um die Aggregation function AVG und SUM zu benuzten, muss GROUP BY v.NAME, k.FIR
 SELECT 
     v.NAME AS VertreterName, 
     k.FIRMA AS KundeName, 
-    a.ARTBEZ AS ArtikelName, 
-    SUM(p.MENGE) AS Gesamtbestellmenge, 
-    AVG(p.PREIS) AS Durchschnittspreis, 
-    SUM(p.MENGE * p.PREIS) AS Gesamtbestellwert
+    ats.ARTBEZ AS ArtikelName, 
+    SUM(ap.MENGE) AS Gesamtbestellmenge, 
+    AVG(ap.PREIS) AS Durchschnittspreis, 
+    SUM(ap.MENGE * ap.PREIS) AS Gesamtbestellwert
 FROM 
     vert v
 JOIN 
@@ -58,15 +58,15 @@ JOIN
 JOIN 
     aufkopf ak ON k.KDNR = ak.KDNR
 JOIN 
-    aufpos p ON ak.AUFNR = p.AUFNR
+    aufpos ap ON ak.AUFNR = ap.AUFNR
 JOIN 
-    artst a ON p.ARTNR = a.ARTNR
+    artst ats ON ap.ARTNR = ats.ARTNR
 WHERE 
     v.NAME = 'Fischer'
 GROUP BY 
-    v.NAME, k.FIRMA, a.ARTBEZ
+    v.NAME, k.FIRMA, ats.ARTBEZ
 ORDER BY 
-    v.NAME, k.FIRMA, a.ARTBEZ;
+    v.NAME, k.FIRMA, ats.ARTBEZ;
 ```
 
 
@@ -87,7 +87,7 @@ SELECT
 	ap.ARTNR
 FROM 
 	aufpos ap
-join 
+JOIN 
 	artst ats
 ON	
 	ap.ARTNR = ats.ARTNR
