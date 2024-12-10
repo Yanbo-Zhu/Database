@@ -287,7 +287,7 @@ GROUP BY
 
 ---
 
-die insgesamt durchschnittlich gelieferte Anzahl an alle Teilen   
+Die insgesamt durchschnittlich gelieferte Anzahl an alle Teilen   
 
 ```sql
 SELECT 
@@ -332,6 +332,8 @@ FROM
 Aufgabestellung: 
 Wer liefert von welchem Teil wie viel? Geben Sie bitte den Namen des Teils, den Namen des Lieferanten und die gelieferte Menge für das Teil an. Die Anzeige soll so geordnet sein, dass die Teile (alphabetisch sortiert) mit der größten Liefermenge vor den anderen Teilen gelistet werden.
 
+---
+
 Wer: SUPPNAME aus der Tabelle supplier
 Welchem Teil: PARTNAME aus der Tabelle part
 Wie viel: QUANTITY aus der Tabelle supp_part. Um die Summer von supp_part.QUANTITY anzureichen, muss der Entitäten nach part.PARTNAME und supplier.SUPPNAME grouppiert werden 
@@ -367,8 +369,8 @@ Suchen Sie bitte aus jeder Abteilung den Namen, das Gehalt und die Abteilungsnum
 
 ---
 
-das Durchschnittsgehalt der zugehörigen Abteilung: SELECT AVG(SALARY) FROM emp WHERE DEPTNO = e.DEPTNO
-das Durchschnittsgehalt auf 2 Nachkommastellen runden: ROUND(AVG(SALARY), 2)
+Das Durchschnittsgehalt der zugehörigen Abteilung: SELECT AVG(SALARY) FROM emp WHERE DEPTNO = e.DEPTNO
+Das Durchschnittsgehalt auf 2 Nachkommastellen runden: ROUND(AVG(SALARY), 2)
 
 ```sql
 SELECT 
@@ -383,6 +385,8 @@ WHERE
 ORDER BY 
     e.DEPTNO;
 ```
+
+![](image/Pasted%20image%2020241210203646.png)
 
 ## 2.4 Aufgabe 8 
 
@@ -416,8 +420,10 @@ WHERE
 
 Entwickeln Sie bitte eine eigene Aufgabenstellung und die entsprechende Lösung. Dokumentieren Sie die Aufgabenstellung! Die Übungsdatenbank kann mat_inf Oder company sein. Bedingung: es sollen mindestens eine Unteranfrage (Subquery) und ein join enthalten sein.
 
+---
 
-Aufgabestellung zum Company Schema: Zeigen Sie bitte den Namen der Abteilung, den Namen des Mitarbeiters und das Gehalt der Mitarbeiter an, die in einer Abteilung arbeiten, deren Durchschnittsgehalt über 2000 liegt.
+Aufgabestellung zum Company Schema: 
+Zeigen Sie bitte den Namen der Abteilung, den Namen des Mitarbeiters und das Gehalt der Mitarbeiter an, die in einer Abteilung arbeiten, deren Durchschnittsgehalt über 2000 liegt.
 
 Durch unterliegende Query ergibt es sich, welche Abteilung deren Durchschnittsgehalt über 2000 liegt
 ```sql
