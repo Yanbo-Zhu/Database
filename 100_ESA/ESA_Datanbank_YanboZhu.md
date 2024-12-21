@@ -123,6 +123,27 @@ ORDER BY
 LIMIT 1;
 ```
 
+ Eine variante 
+```sql
+SELECT 
+    ats.* 
+FROM 
+    artst ats
+WHERE 
+    EXISTS (
+        SELECT ap.ARTNR
+        FROM aufpos ap
+        WHERE ap.ARTNR = ats.ARTNR
+        GROUP BY ap.ARTNR
+        HAVING COUNT(ap.AUFNR) = 2
+    )
+    AND ats.bestand = (
+    	SELECT MAX(sub_ats.bestand)
+    	FROM artst sub_ats
+	);
+```
+
+
 ![](image/Pasted%20image%2020241207111024.png)
 
 ## 1.3 Aufgabe 3
@@ -302,30 +323,31 @@ FROM
 
 ---
 
-UNION ALL: die insgesamt durchschnittlich gelieferte Anzahl an Teilen hinzufügen und in einer zusätzlichen Zeile anzeigen
+UNION : die insgesamt durchschnittlich gelieferte Anzahl an Teilen hinzufügen und in einer zusätzlichen Zeile anzeigen
+(Wir benutzen Union ALL nicht )
+Das Durchschnittsgehalt auf 2 Nachkommastellen runden: ROUND(AVG(sp.QUANTITY))
 
 ```sql
 SELECT 
     s.SUPPNAME, 
     s.SUPPNO, 
-    AVG(sp.QUANTITY) AS durchschnittliche_anzahl_teile
+    ROUND(AVG(sp.QUANTITY), 2)  AS durchschnittliche_anzahl_teile
 FROM 
     supplier s
 JOIN 
     supp_part sp ON s.SUPPNO = sp.SUPPNO
 GROUP BY 
     s.SUPPNO
-UNION ALL
+UNION 
 SELECT 
     NULL AS SUPPNO, 
     'Durchschnitt insgesamt' AS SUPPNAME, 
-    AVG(sp.QUANTITY) AS durchschnittliche_anzahl_teile
+    ROUND(AVG(sp.QUANTITY)) AS durchschnittliche_anzahl_teile
 FROM 
     supp_part sp;
-    
 ```
 
-![](image/Pasted%20image%2020241207111748.png)
+![](image/Pasted%20image%2020241218190728.png)
 
 ## 2.2 Aufgabe 6 
 
