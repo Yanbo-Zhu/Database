@@ -23,7 +23,7 @@ Seit SQL-99 im Standard enthalten
 
 # 2 Trigger syntax 
 
-## 2.1 Create trigger
+## 2.1 Create or replace  trigger
 
 ```
 create [or replace] trigger TriggerName
@@ -54,8 +54,9 @@ repleace 为取代一个原有的 trigger
 
 ---
 
-可以给入多个 TriggerEreignis
+可以给入多个 TriggerEreignis 
 
+insert + update 
 `after insert or update of kdnr on aufkopf`
 
 ---
@@ -132,19 +133,62 @@ For each row, 如果要对 each row 都执行一次 action 中的 dml, 则需要
 
 就是当 满足 TriggerBedingung, 才能执行  aktion 
 
-
+```
+when (new.aufnr != 99)
+```
 ### 2.1.6 TriggerAktion
 
-1 set 的使用 
+#### 2.1.6.1 set 的使用 
 SET NEW.umssoll := OLD.umssoll * 1.25;
 
 set 只能 in mysql,  
 oracle 和 progres 中 不需要写set 也有同样的效果 
 
 
-2 `:` 的使用 
+#### 2.1.6.2 `:` 的使用 
 mysql 中 :    `SET NEW.umssoll = OLD.umssoll * 1.25`;
 Oracle 和 progres 中 :          `new.umssoll := :old.umsoll*1.25 `
+
+
+
+#### 2.1.6.3 declare 的使用 
+
+```
+CREATE OR REPLACE TRIGGER Status_Check
+
+AFTER INSERT OR UPDATE OF S_STATUS ON AUFKOPF
+
+FOR EACH ROW
+
+when (new.aufnr != 99)
+declare
+status_alt aufkopf.s_status%TYPE;
+BEGIN
+    if inserting then
+        status_alt := null;
+    else
+        status_alt := :old.s_status;
+    end if;
+    
+    insert into status_log values(:new.aufnr,status_alt,:new.s_status,sysdate);
+    
+    dbms_output.put_line('statusänderung protokolliert von auftrag: '|| :new.aufnr);
+END;
+```
+
+In dieser Zeile wird eine **Variable `status_alt`** deklariert, die den gleichen Datentyp wie die Spalte `s_status` der Tabelle `aufkopf` hat.
+
+
+Erklärung:
+- **`status_alt`** ist der Name der Variablen, die im Trigger verwendet wird, um den alten Wert von `s_status` zu speichern (wenn es sich um ein `UPDATE` handelt).
+- **`aufkopf.s_status%TYPE`** bedeutet, dass der Datentyp von `status_alt` dem Datentyp der Spalte `s_status` in der Tabelle `aufkopf` entspricht. Dadurch wird die Variable `status_alt` dynamisch mit dem gleichen Datentyp wie `s_status` deklariert. Wenn sich der Datentyp der Spalte `s_status` in der Zukunft ändert, wird der Datentyp der Variablen `status_alt` automatisch entsprechend angepasst.
+
+Beispiel:
+Angenommen, die Spalte `s_status` in der Tabelle `aufkopf` ist vom Typ `VARCHAR2(50)`. In diesem Fall wird `status_alt` ebenfalls vom Datentyp `VARCHAR2(50)` sein, weil `%TYPE` den Datentyp der angegebenen Spalte übernimmt.
+
+Das ist besonders nützlich, da es sicherstellt, dass die Variable `status_alt` immer denselben Datentyp wie die Spalte `s_status` hat, ohne dass der Datentyp manuell angepasst werden muss, wenn sich der Typ von `s_status` ändert.
+
+
 
 
 ## 2.2 alter trigger
@@ -417,4 +461,34 @@ Achtung:
 • keine Anzeige der Ergebnistabelle
 • Rudimentäre Ausgabeanweisungen über spezielle PL/SQL- Prozeduren (dbms_output.put_line(AusgabeString))
 
+
+## 3.4 Example 4
+
+Wie oft wird der nachfolgende Trigger ausgeführt, wenn ein UPDATE in der Tabelle STATUS_LOG 10.000 Zeilen betrifft?
+
+```
+CREATE OR REPLACE TRIGGER Status_Check
+
+AFTER INSERT OR UPDATE OF S_STATUS ON AUFKOPF
+
+FOR EACH ROW
+
+when (new.aufnr != 99)
+declare
+status_alt aufkopf.s_status%TYPE;
+BEGIN
+    if inserting then
+        status_alt := null;
+    else
+        status_alt := :old.s_status;
+    end if;
+    
+    insert into status_log values(:new.aufnr,status_alt,:new.s_status,sysdate);
+    
+    dbms_output.put_line('statusänderung protokolliert von auftrag: '|| :new.aufnr);
+END;
+```
+
+答案 是 0 
+die Tabelle STATUS_LOG hat keinen Einfluss auf die Ausführung des Triggers, in sie wird lediglich hineingeschriebe
 

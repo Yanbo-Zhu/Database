@@ -1,0 +1,183 @@
+
+# 1 Theoretische Fragen
+
+
+## 1.1 unterabfragen, subselects
+
+1 Nachfolgende Fragestellung beschäftigt sich mit Unterabfragen (Subselects) in SQL: Erklären Sie zunächst kurz, wo genau Unterabfragen in SQL-Statements vorkommen können und welche Funktion sie haben. Stellen Sie außerdem bitte kurz einfache und korrelierte Unterabfragen einander gegenüber. Nennen und beschreiben Sie 2 Unterschiede. (5 Punkte)
+
+### 1.1.1 wo genau 
+
+生成每个 的 sql 的例子 
+
+Unterabfragen (auch _Subqueries_ genannt) sind SQL-Anfragen, die innerhalb einer anderen SQL-Anfrage eingebettet sind. Sie dienen dazu, komplexe Datenabfragen zu vereinfachen und ermöglichen eine verschachtelte Analyse von Daten. Unterabfragen können in den folgenden Bereichen von SQL-Statements vorkommen:
+
+
+**SELECT-Statement**: Unterabfragen können in der `SELECT`-Klausel verwendet werden, um aggregierte Werte oder Berechnungen zu ermitteln, die nicht direkt in der Hauptabfrage enthalten sind.
+- unterabfragen in select : es liefert eine splate fur ergebnisstablle 
+
+Die Unterabfrage berechnet den durchschnittlichen Preis aller Artikel, und dieser Wert wird als Spalte in der Ergebnistabelle angezeigt.
+Ergebnis: Eine Spalte wird hinzugefügt, die den Durchschnittspreis aller Artikel für jede Zeile anzeigt.
+```sql
+SELECT 
+    Artikel_ID, 
+    Artikelname, 
+    Preis, 
+    (SELECT AVG(Preis) FROM Artikel) AS Durchschnittspreis
+FROM Artikel;
+
+```
+
+
+
+
+**FROM-Klausel**: Unterabfragen können als Tabellenquellen innerhalb der `FROM`-Klausel verwendet werden. Dies wird als "Inline-View" oder "Derived Table" bezeichnet.
+- liefert eine temporäre/ virtuelle/ abgeleitet Tabelle, die mit Joinsbedingung mit weiter Trabllen verknüpft werden muss 
+
+Die Unterabfrage erstellt eine temporäre Tabelle (abgeleitete Tabelle), die dann in der Hauptabfrage verwendet wird.
+Ergebnis: Nur Artikel mit einem Preis über 50 werden in der temporären Tabelle "TeuerArtikel" aufgenommen und weiterverarbeitet.
+```sql 
+SELECT 
+    Artikelname, 
+    Preis
+FROM (
+    SELECT 
+        Artikel_ID, 
+        Artikelname, 
+        Preis 
+    FROM Artikel 
+    WHERE Preis > 50
+) AS TeuerArtikel;
+```
+
+
+
+
+**WHERE-Klausel**: Unterabfragen können als Filter in der `WHERE`-Klausel verwendet werden, um spezifische Bedingungen zu erfüllen. Hier kommen sie häufig in Kombination mit Operatoren wie `IN`, `EXISTS`, `ANY`, `ALL` vor.
+- Filtern von Zeilen
+- die Zeilen nur für die Ergebnisse Tabelle ausgewählt , die die Bedingungen die sie in der Bedingung erfullen 
+
+Die Unterabfrage filtert die Hauptabfrage basierend auf bestimmten Bedingungen.
+Ergebnis: Nur Artikel, die von Kunde mit Kunden_ID = 1 bestellt wurden, werden angezeigt.
+```sql
+SELECT 
+    Artikelname, 
+    Preis
+FROM Artikel
+WHERE Artikel_ID IN (
+    SELECT Artikel_ID 
+    FROM Bestellungen 
+    WHERE Kunden_ID = 1
+);
+
+```
+
+
+
+**HAVING-Klausel**: Ähnlich wie in der `WHERE`-Klausel können Unterabfragen auch in der `HAVING`-Klausel verwendet werden, um aggregierte Bedingungen zu überprüfen.
+    - Filtern von Zeilen
+
+Die Unterabfrage wird verwendet, um Gruppenbedingungen zu prüfen.
+Ergebnis: Zeigt Kunden an, deren Gesamtbestellwert über dem durchschnittlichen Gesamtwert aller Kunden liegt.
+```sql
+SELECT 
+    Kunden_ID, 
+    SUM(Bestellwert) AS Gesamtwert
+FROM Bestellungen
+GROUP BY Kunden_ID
+HAVING SUM(Bestellwert) > (
+    SELECT AVG(SUM(Bestellwert)) 
+    FROM Bestellungen
+    GROUP BY Kunden_ID
+);
+```
+
+
+
+### 1.1.2 Funktion von Unterabfragen
+
+Unterabfragen ermöglichen es, in einer einzigen SQL-Anweisung komplexe Berechnungen, Vergleiche oder Datenabrufe durchzuführen. Sie bieten die Möglichkeit, Ergebnisse einer Abfrage als Input für eine andere Abfrage zu verwenden, was die Lesbarkeit und Wartbarkeit des Codes verbessert.
+
+### 1.1.3 Einfache Unterabfragen und korrelierten Unterabfragen
+ 
+ **Einfache Unterabfragen**:
+- **Definition**: Eine einfache Unterabfrage ist eine Unterabfrage, die unabhängig von der äußeren Abfrage ist. Sie wird einmal ausgeführt und liefert ein Ergebnis, das dann in der äußeren Abfrage verwendet wird.
+```sql
+SELECT name
+FROM employees
+WHERE salary > (
+    SELECT AVG(salary) 
+    FROM employees
+);
+
+```
+Erklärung: Hier wird die einfache Unterabfrage verwendet, um das durchschnittliche Gehalt zu berechnen, und dieses Ergebnis wird dann mit dem Gehalt der Mitarbeiter verglichen. Die Unterabfrage wird nur einmal ausgeführt.
+
+
+**Korrelierte Unterabfragen**
+- **Definition**: Eine korrelierte Unterabfrage ist eine Unterabfrage, die sich auf Spalten der äußeren Abfrage bezieht. Sie wird für jede Zeile der äußeren Abfrage ausgeführt und liefert ein Ergebnis, das von den Daten der äußeren Abfrage abhängt.
+```sql
+SELECT name
+FROM employees e1
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees e2
+    WHERE e1.department = e2.department
+);
+
+```
+Erklärung: Hier bezieht sich die Unterabfrage auf die Spalte department der äußeren Abfrage. Für jede Zeile der äußeren Abfrage wird die Unterabfrage erneut ausgeführt und das durchschnittliche Gehalt für die entsprechende Abteilung berechnet.
+
+
+ **Unterschiede zwischen einfachen und korrelierten Unterabfragen**
+ 一共有三个 用 chatgpt 找出来 
+1. **Abhängigkeit von der äußeren Abfrage**:
+    - **Einfache Unterabfrage**: Unabhängig von der äußeren Abfrage. Sie wird ==einmal== ausgeführt und liefert ein festes Ergebnis für die äußere Abfrage.
+        - der äußeren Abfrage ist  abhängig nicht unterabfragen 
+    - **Korrelierte Unterabfrage**: Hängt von der äußeren Abfrage ab. Sie wird ==für jede Zeile== der äußeren Abfrage ausgeführt und berechnet ein Ergebnis basierend auf den jeweiligen Werten der äußeren Abfrage.
+2. **Leistung**:
+    - **Einfache Unterabfrage**: Da sie nur einmal ausgeführt wird, kann die Leistung besser sein, besonders wenn es sich um große Datenmengen handelt.
+    - **Korrelierte Unterabfrage**: Da sie für jede Zeile der äußeren Abfrage ausgeführt wird, kann sie langsamer sein und mehr Ressourcen benötigen, besonders bei großen Tabellen oder komplexen Berechnungen.
+3.  **Komplexität und Anwendungsfall**:
+    - **Einfache Unterabfrage**: Wird häufig verwendet, wenn eine feste Berechnung oder ein fester Vergleichswert benötigt wird, der nicht von der äußeren Abfrage abhängt.
+    - **Korrelierte Unterabfrage**: Wird verwendet, wenn das Ergebnis der Unterabfrage für jede Zeile der äußeren Abfrage unterschiedlich ist und sich dynamisch ändern kann.
+
+
+
+
+
+## 1.2 Nullwert?
+
+2 Was ist ein Nullwert? Worin besteht der Unterschied zu „0“ und „ „? Woraus resultiert ein Nullwert? Wie können Sie das Auftreten von Nullwerten unterbinden? Erläutern Sie dies bitte kurz an einem selbstgewählten Beispiel! (5 Punkte)
+
+
+NULL = Wert ist nicht definiert, NULL ist ungleich "0"
+Leerzeichen ist Ist ein string oder Varchar, nicht NULL
+
+ Woraus resultiert ein Nullwert
+ - keine eingabe, nicht nullwert, nicht Default-wert 
+
+
+Wie können Sie das Auftreten von Nullwerten unterbinden
+- Insert into ... Values ('xyz', NULL)
+- insert into kunde (kdnr,ort) values (100,'Berlin'),   kunde 还有其他的 attribute, 这里只写了 kdnr,ort, 其他没写的 attribute 都自动 置成 NULL 
+
+Wie schaffe ich es bei der Kundennummer dass dort ein Nullwert nicht erlaubt ist
+- beim primärschlüssel dann PRIMARY KEY  , Kundennummer als   PRIMARY KEY  ,    PRIMARY KEY   darf nicht als Null gestezt werden 
+- oder beim Definition der Tabelle  durch   NOT NULL 
+
+
+wo setze ich denn Primärschlüssel oder normal in welchen Statements
+- beim Create Table  und Alter tabel
+
+
+## 1.3 rekursiver (unärer) Relationshiptyp
+
+
+3 . Wie kann ein rekursiver (unärer) Relationshiptyp grundsätzlich auf das Relationale Datenmodell abgebildet werden? Beschreiben Sie dies bitte kurz und verwenden Sie ein eigenes Beispiel für die Darstellung. (5 Punkte)
+
+
+# 2 SQL
+
+Notieren Sie bitte die korrekten SQL-Befehle für die folgenden Aufgabenstellungen, die sich auf die Datenbanken mat_inf und company beziehen:
+
