@@ -1,6 +1,19 @@
 # 1 Freitext Aufgabe 
 
 
+
+Gegenstand der vorliegenden Aufgabe ist die Verwaltung von Lehrmaterialien für ein Fernstudium Informatik an einer Hochschule:
+
+Ausgegangen werden soll von Lehreinheiten als größeren, inhaltlich orientierten Studienkomplexen in einem Hochschulfernstudium. Als Lehreinheiten existieren beispielsweise „Datenbanksysteme“, „Internettechnologien“ etc.
+
+Zu jeder Lehreinheit werden momentan jeweils 8 Kurseinheiten angeboten sowie ein Praktikum als weitere Kurseinheit. Kurseinheiten der Lehreinheit „Datenbanksysteme“ sind beispielsweise „Einführung in SQL“ oder „XML und Datenbanken“.
+
+Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Je Abschnitt werden in variabler Anzahl Übungsaufgaben und zu diesen wiederum Beispiellösungen in variabler Anzahl angeboten. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-)Abschnitt. Die Übungsaufgaben sind eindeutig einem entsprechenden Lehrheftabschnitt zugeordnet.
+
+----
+
+
+
 Bitte beachten Sie: Diese Aufgabe muss offline bearbeitet werden (Blatt Papier).
 
 Sie bezieht sich mit den genannten Teilaufgaben auf den nachfolgend dargestellten Sachverhalt.
@@ -12,16 +25,6 @@ Sie bezieht sich mit den genannten Teilaufgaben auf den nachfolgend dargestellte
 **FT3.** Entwickeln Sie bitte für die aus **FT2** resultierende(n) Relation(en) für die Abbildung von Lehrheften mit entsprechenden Abschnitten den (die) entsprechenden „create table“-Befehl(e), mit Abbildung der Primär- und Fremdschlüssel. **(10 Punkte)**
 
 **FT4**. Es soll nachträglich die Relation für die Abbildung von Lehrheften ergänzt werden um die Angabe eines Autorennamens über eine zusätzliche Spalte. Diese soll eine variabel lange Zeichenkette von max. 30 Zeichen aufnehmen können. Alle existierenden Lehrhefte wurden bisher von dem Autor „Max Meier“ publiziert. Diese Angabe soll in alle verfügbaren Zeilen eingetragen werden. Setzen Sie dies bitte mit SQL um. **(6 Punkte)**
-
------------------------------------
-
-Gegenstand der vorliegenden Aufgabe ist die Verwaltung von Lehrmaterialien für ein Fernstudium Informatik an einer Hochschule:
-
-Ausgegangen werden soll von Lehreinheiten als größeren, inhaltlich orientierten Studienkomplexen in einem Hochschulfernstudium. Als Lehreinheiten existieren beispielsweise „Datenbanksysteme“, „Internettechnologien“ etc.
-
-Zu jeder Lehreinheit werden momentan jeweils 8 Kurseinheiten angeboten sowie ein Praktikum als weitere Kurseinheit. Kurseinheiten der Lehreinheit „Datenbanksysteme“ sind beispielsweise „Einführung in SQL“ oder „XML und Datenbanken“.
-
-Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Je Abschnitt werden in variabler Anzahl Übungsaufgaben und zu diesen wiederum Beispiellösungen in variabler Anzahl angeboten. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-)Abschnitt. Die Übungsaufgaben sind eindeutig einem entsprechenden Lehrheftabschnitt zugeordnet.
 
 
 # 2 Choice

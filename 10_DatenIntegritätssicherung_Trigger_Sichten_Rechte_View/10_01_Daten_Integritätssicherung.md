@@ -38,6 +38,32 @@ VALUES (2, 'ModellY', 'FirmaB', 1990, '9876543210987', 2000, 'Pos2', 'TeilB');
 
 ```
 
+
+## 1.1 die referenzielle Integrität
+
+Welche kritischen Operationen können die referenzielle Integrität in einem relationalen DBS gefährden? 
+
+Erläutern Sie bitte 2 dieser Operationen anhand des Beispiels: Gegeben sind die Relationen AuftragsPosition (aufnr, posnr, menge, ArtikelStamm->artnr) und ArtikelStamm (artnr, artbez, ekpreis). (5 Punkte)
+
+
+---
+
+答案: 
+der Fremdschlüssel ist ja eine integritätsbedingung und gehört zu diesen ja Modell Integritätsbedingungen
+
+1 Delete operation
+Löschen eines Primärschlüssels in der referenzierten Tabelle
+
+2 Update operation
+- Ändern eines Primärschlüssels in der referenzierten Tabelle
+- Updaten des Fremdschlüssels auf einen nicht existierenden Primärschlüssel
+
+
+3 Insert operation 
+Erstellen von Auftragsposition mit Fremdschlüssel der keinen Datensatz in ArtikelStamm referenziert
+
+
+
 # 2 Beispiel
 
 ## 2.1 

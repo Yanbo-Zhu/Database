@@ -181,3 +181,64 @@ wo setze ich denn Primärschlüssel oder normal in welchen Statements
 
 Notieren Sie bitte die korrekten SQL-Befehle für die folgenden Aufgabenstellungen, die sich auf die Datenbanken mat_inf und company beziehen:
 
+
+## 2.1 
+
+Entwickeln Sie bitte eine Abfrage in Bezug auf die Datenbank mat_inf, die folgende Information enthält: 
+Es soll je Auftrag die insgesamt zu entrichtende Mehrwertsteuer ausgegeben werden (Gehen Sie dazu von konstant 16% aus). Für den Auftrag genügt die Anzeige der Auftragsnummer. Die Anzeige soll nach der Mehrwertsteuer absteigend sortiert werden. Die Spalteninhalte sollen aus den Spaltenbezeichnungen eindeutig hervorgehen. (5 Punkte)
+
+
+
+## 2.2 
+
+Entwickeln Sie bitte eine Abfrage in Bezug auf die Datenbank mat_inf, die folgende Information enthält: 
+Zu ermitteln sind der Name, die Vertreternummer und die Provision der Vertreter, deren Provision niedriger ist als die Provision irgendeines Vertreters aus dem Stadtbezirk mit der PLZ „12487“. (5 Punkte)
+
+
+## 2.3 
+
+Entwickeln Sie bitte eine Abfrage in Bezug auf die Datenbank company, die folgende Information enthält: 
+Es sollen die Nummern aller Teile angezeigt werden, die von mehr als einem Lieferanten geliefert worden sind. (5 Punkte)
+
+
+## 2.4 
+
+Geben Sie das Ergebnis der folgenden Abfrage in der Datenbank company an
+
+```
+SELECT suppname
+FROM supplier
+WHERE suppno IN
+    (SELECT suppno
+    FROM supp_part
+    WHERE partno IN
+        (SELECT partno
+        FROM part
+        WHERE color = 'Red'));
+```
+
+
+# 3 Datenbankentwurf
+
+
+Gegenstand von Aufgabe 9 ist die Verwaltung von Materialien für ein Fernstudium Informatik an einer Hochschule:
+Ausgegangen werden soll von Lehreinheiten als größeren, inhaltlich orientierten Studienkomplexen in einem Hochschulfernstudium. Als Lehreinheiten existieren beispielsweise „Datenbanksysteme“, „Internettechnologien“ etc.
+
+Zu jeder Lehreinheit werden momentan jeweils 8 Kurseinheiten angeboten sowie ein Praktikum als weitere Kurseinheit. Kurseinheiten der Lehreinheit „Datenbanksysteme“ sind beispielsweise „Einführung in SQL“ oder „XML und Datenbanken“.
+
+Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Je Abschnitt werden in variabler Anzahl Übungsaufgaben und zu diesen wiederum Beispiellösungen in variabler Anzahl angeboten. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-)Abschnitt. Die Übungsaufgaben sind eindeutig einem entsprechenden Lehrheftabschnitt zugeordnet.
+
+
+
+Gehen Sie bitte von nachfolgend dargestelltem Sachverhalt aus und beantworten Sie die Fragen:
+9.1 Bitte entwickeln Sie das Datenmodell für die Abbildung des Sachverhaltes. Stellen Sie das Datenmodell in Form eines ER-Diagramms mit (min,max)-Notation dar. Die Attribute können in dieser Darstellung weggelassen werden. (12 Punkte)
+
+9.2 Leiten Sie aus dem ER-Diagramm aus 9.1 normalisierte Relationen ab. Definieren Sie dazu die entsprechenden Primär- und Fremdschlüssel. Ordnen Sie bitte alle angesprochenen Attribute zu und entwickeln sie, wenn nötig, eigene Attribute. Je Relation soll mindestens ein Nichtschlüsselattribut existieren. Notieren Sie die Relationen in Relationenschreibweise. (12 Punkte)
+
+9.3 Entwickeln Sie bitte für die aus 9.2. resultierende(n) Relation(en) für die Abbildung von Lehrheften mit entsprechenden Abschnitten den (die) entsprechenden „create table“-Befehl(e), mit Abbildung der Primär- und Fremdschlüssel. (10 Punkte)
+
+9.4 Es soll nachträglich die Relation für die Abbildung von Lehrheften ergänzt werden um die Angabe eines Autorennamens über eine zusätzliche Spalte. Diese soll eine variabel lange Zeichenkette von max. 30 Zeichen aufnehmen können. Alle existierenden Lehrhefte wurden bisher von dem Autor „Max Meier“ publiziert. Diese Angabe soll in alle verfügbaren Zeilen eingetragen werden. Setzen Sie dies bitte mit SQL um. (6 Punkte)
+
+
+
+
