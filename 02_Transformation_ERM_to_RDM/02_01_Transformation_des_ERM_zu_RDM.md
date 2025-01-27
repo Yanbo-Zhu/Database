@@ -1,5 +1,11 @@
 
-
+Relationaler Entwurf Das Relationale Modell
+- Was sind Relationen genau?
+- Relationen und Tabellen
+- Von ER-Diagrammen zu Relationenschemata
+- Konvertierung von Spezialisierung
+- Funktionale Abhängigkeiten (FDs)
+- Normalformen
 
 
 # 1 Grundlagen_der_Transformation_des_ERM_RDM
@@ -17,14 +23,37 @@ Phasenmodell
 
 ![](image/Pasted%20image%2020241113103317.png)
 
-
-
-
+## 1.1 Problemstellung
 
  konzeptuelle Schema (ER Modelle) -> Logsiche Schema -> Datenmodell 
+ 
+Mit Entwicklung des konzeptuellen Schemas liegen die wesentlichen Informationen zum DB-Entwurf vor. Sie müssen noch dem DBMS „bekannt“ gemacht und übersetzt werden:
+- Die Datenstrukturen des konzeptuellen Schemas kann das DBMS nicht (direkt) umsetzen. Zur Beschreibung wurden abstrakte Datenmodelle wie ERM oder UML genutzt.
+- Die Beschreibung der logischen Datenstrukturen der DB erfolgt über das logische Schema. Es muss mit dem Datenmodell beschrieben werden, das das DBMS nutzt.
 
-满足了 3NF , 可以实现 minimale Redundanz 
-![](image/Pasted%20image%2020241113103723.png)
+## 1.2 Ziele der Abbildung:
+
+- Informationserhaltung
+    - Möglichst komplette Information aus dem konzeptuellen Schema nutzbar machen.
+- Minimale Redundanz (mindestens 3NF)
+    - 满足了 3NF , 可以实现 minimale Redundanz 
+    - Das konzeptuelle Schema sollte keine Redundanzen besitzen. Das logische Schema sollte redundanzfrei sein, mit Ausnahme der Schlüsselredundanzen. Es sollte mindestens die 3NF umsetzen.
+- Minimale Anzahl von Relationen
+    - Es sollten keine unnötigen Relationen erzeugt werden, da dies das Abfrageverhalten negativ beeinflusst.
+- Allerdings sollten i.d.R. keine Relationen „eingespart“ werden, wenn dies die 3NF unterläuft.
+- Natürlichkeit, Verständlichkeit der Abbildung
+
+
+Probleme der Abbildung:
+- Verlust an Semantik
+    - Das relationale Datenmodell gehört nicht zu den semantischen Datenmodellen, wie ERM und UML. Es verfügt über weniger Konzepte. Ein semantisch „reicheres“ wird auf ein „ärmeres“ Modell abgebildet.
+- Abbildung nicht eindeutig reversibel
+    - Verschiedene Konzepte des Ausgangsmodells werden auf ein Konzept des Zielmodells abgebildet.
+- Zeitpunkt der Abbildung (inkrementelles Arbeiten?)
+
+
+ 
+
 
 
 ![](image/Pasted%20image%2020241113104002.png)
@@ -35,8 +64,32 @@ Phasenmodell
 
 ![](image/Pasted%20image%2020241113104756.png)
 
+Ausgangsschema:
+ERM-Beispiel: UoD Hochschule
+Modellelemente:
+- Attribut
+- Entitytyp
+- Beziehungstyp
+- Generalisierung
+Für UML genauso anwendbar!
+
+Zielschema:
+RDM
+Modellelemente:
+- Attribut
+- Relation
+- Integritätsbedingung
+    - Primärschlüssel
+    - Fremdschlüssel
+
+
 
 ## 2.1 Transformation von Attributen 
+
+
+Transformation von Attributen:
+- Elementare Attribute und (Standard-)Wertebereiche des ERM werden auf Attribute und Wertebereiche des RDM abgebildet.
+- Liegen mehrwertige oder strukturierte Attribute des ERM vor, so wird für deren Abbildung eine Relation erzeugt. Sie enthält das mehrwertige Attribut und einen Fremdschlüssel.
 
 ![](image/Pasted%20image%2020241113105400.png)
 
@@ -157,6 +210,7 @@ Typisierte Partitionierung:  只设置Supertype 的table, 将两个 type 的数�
 
 ![](image/Pasted%20image%2020241113122613.png)
 
+
 ## 3.2 Horizontale Partitionierung: Objekt-orientierter Stil 
 
 ![](image/Pasted%20image%2020241113122639.png)
@@ -179,7 +233,15 @@ FlimeZK: film 同时属于 Zeichenkrickfilme and Krimis
 
 
 
+# 4 Primärschlüssel
+
+写入便条 
+Ein Primärschlüssel ist ein Attribut, welches
+
+- in Bezug auf den Fremdschlüssel einer anderen Relation definiert ist
+- als künstlicher Primärschlüssel definiert sein kann 
+- keinen Nullwert aufweisen darf 
+- eindeutig ist 
 
 
-
-
+除了 "in Bezug auf den Fremdschlüssel einer anderen Relation definiert ist" 其他都是正确的 
