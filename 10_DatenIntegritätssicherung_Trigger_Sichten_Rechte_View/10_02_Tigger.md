@@ -138,20 +138,40 @@ when (new.aufnr != 99)
 ```
 ### 2.1.6 TriggerAktion
 
-#### 2.1.6.1 set 的使用 
+#### 2.1.6.1 if 某个 aktion 
+
+```
+AFTER INSERT OR UPDATE OF S STATUS ON AUFKOPF
+FOR EACH ROW
+when (new.aufnr 99)
+declare
+status_alt aufkopf.s_status%TYPE;
+BEGIN
+if inserting then
+status alt null;
+else
+status alt :old.s status;
+end if;
+insert into status_log
+dbms_output:put_line('statusänderung protokolliert von auftrag:
+END;
+'II :new.aufnr);
+```
+
+#### 2.1.6.2 set 的使用 
 SET NEW.umssoll := OLD.umssoll * 1.25;
 
 set 只能 in mysql,  
 oracle 和 progres 中 不需要写set 也有同样的效果 
 
 
-#### 2.1.6.2 `:` 的使用 
+#### 2.1.6.3 `:` 的使用 
 mysql 中 :    `SET NEW.umssoll = OLD.umssoll * 1.25`;
 Oracle 和 progres 中 :          `new.umssoll := :old.umsoll*1.25 `
 
 
 
-#### 2.1.6.3 declare 的使用 
+#### 2.1.6.4 declare 的使用 
 
 ```
 CREATE OR REPLACE TRIGGER Status_Check

@@ -8,7 +8,7 @@ Ein **Theta-Join** (R⋈θSR ) ist eine spezielle Form des Joins, bei dem die Ve
 
 - **Theta-Join Definition**:
     - ![](image/Pasted%20image%2020241221214339.png)
-    - Wenn θ\thetaθ leer ist, wird **jede Kombination** von Tupeln aus RRR und SSS akzeptiert.
+    - Wenn θ leer ist, wird **jede Kombination** von Tupeln aus RRR und SSS akzeptiert.
 - **Kartesisches Produkt Definition**:
     - ![](image/Pasted%20image%2020241221214346.png)
     - Das kartesische Produkt kombiniert **alle Tupel** von RRR mit **allen Tupeln** von SSS, unabhängig von einer Bedingung.
@@ -41,7 +41,7 @@ Wenn der Theta-Join keine Bedingung (θ\thetaθ) spezifiziert, entspricht das Er
 |2|x|
 |2|y|
 
-Theta-Join (R⋈θSR \bowtie_\theta SR⋈θ​S) mit leerer Bedingung:
+Theta-Join (R⋈θS  R \bowtie_\theta S ) mit leerer Bedingung:
 Das Ergebnis ist identisch mit dem kartesischen Produkt.
 
 

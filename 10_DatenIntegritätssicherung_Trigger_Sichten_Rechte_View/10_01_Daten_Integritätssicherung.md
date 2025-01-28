@@ -3,7 +3,6 @@
 
 Das **`CHECK`**-Constraint **`(modelljahr >= gruendungsjahr)`** wird verwendet, um sicherzustellen, dass die Spalte `modelljahr` immer einen Wert enthält, der **größer oder gleich** dem Wert in der Spalte `gruendungsjahr` ist. Dies dient dazu, Datenintegrität auf der Ebene der Tabelle sicherzustellen.
 
-
 1. **Funktion**:    
     - Mit dem `CHECK`-Constraint können Bedingungen festgelegt werden, die jede Zeile der Tabelle erfüllen muss.
     - Wenn eine Zeile eingefügt oder aktualisiert wird und die Bedingung nicht erfüllt, wird die Operation mit einem Fehler abgelehnt.
@@ -39,34 +38,39 @@ VALUES (2, 'ModellY', 'FirmaB', 1990, '9876543210987', 2000, 'Pos2', 'TeilB');
 ```
 
 
-## 1.1 die referenzielle Integrität
-
-Welche kritischen Operationen können die referenzielle Integrität in einem relationalen DBS gefährden? 
-
-Erläutern Sie bitte 2 dieser Operationen anhand des Beispiels: Gegeben sind die Relationen AuftragsPosition (aufnr, posnr, menge, ArtikelStamm->artnr) und ArtikelStamm (artnr, artbez, ekpreis). (5 Punkte)
-
-
 ---
 
-答案: 
-der Fremdschlüssel ist ja eine integritätsbedingung und gehört zu diesen ja Modell Integritätsbedingungen
-
-1 Delete operation
-Löschen eines Primärschlüssels in der referenzierten Tabelle
-
-2 Update operation
-- Ändern eines Primärschlüssels in der referenzierten Tabelle
-- Updaten des Fremdschlüssels auf einen nicht existierenden Primärschlüssel
 
 
-3 Insert operation 
-Erstellen von Auftragsposition mit Fremdschlüssel der keinen Datensatz in ArtikelStamm referenziert
+Beispiel für CHECK-Constraint in CREATE TABLE
+```sql
+CREATE TABLE employees (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INT CHECK (age >= 18),  -- Alter muss mindestens 18 sein
+    salary DECIMAL(10,2) CHECK (salary >= 3000), -- Mindestgehalt 3000
+    department VARCHAR(50) CHECK (department IN ('HR', 'IT', 'Finance')) -- Nur diese Werte erlaubt
+);
+
+```
+
+CHECK-Constraint mit ALTER TABLE hinzufügen
+```sql
+ALTER TABLE artikelzubehoer
+ADD CONSTRAINT chk_modelljahr
+CHECK (modelljahr >= gruendungsjahr);
+```
 
 
+**`CHECK`-Constraint entfernen**
+```sql
+ALTER TABLE employees DROP CONSTRAINT check_salary;
+```
 
-# 2 Beispiel
 
-## 2.1 
+## 1.1 Beispiel
+
+### 1.1.1 
 
 Gehen Sie von folgendem Relationenschema der Tabelle „Artikelzubehoer“ aus. Passen Sie die Definition der existierenden Tabelle mit einem SQL-Statement so an, dass das Modelljahr eines Artikels nicht vor dem Gründungsjahr der Herstellerfirma liegen darf. Artikelzubehoer(ArtNr, Modell, Firma, Modelljahr, EAN, Gruendungsjahr, Pos, Zubehoerteil)
 
@@ -76,9 +80,7 @@ alter table artikelzubehoer add constraint chk_jahr CHECK (modelljahr >= gruendu
 create table artikelzubehoer add constraint chk_jahr CHECK (modelljahr >= gruendungsjahr);
 
 
-
-## 2.2 
-
+### 1.1.2 
 
 Welche Möglichkeiten gibt es, die nachfolgende Integritätsbedingung im SQL-Standard umzusetzen: das Umsatzsoll der Kunden soll mindestens 10.000 € betragen.
 
@@ -112,3 +114,52 @@ Die folgenden Optionen sind jedoch **nicht geeignet**:
     
 - **durch einen entsprechenden Fremdschlüssel auf Umsatzsoll in einer Umsatzsolltabelle**  
     Ein Fremdschlüssel stellt eine Beziehung zwischen zwei Tabellen her, aber er überprüft nicht direkt die Integrität von Werten in einer einzelnen Tabelle.
+
+
+
+
+# 2 die referenzielle Integrität
+
+
+## 2.1 Gefährdung der referenziellen Integrität durch schreibende  Operationen:
+
+
+![](../04_DDL_DML/image/Pasted%20image%2020250128222930.png)
+
+
+- Insert bei referenzierender Relation (FS Wert falsch), z.B.: insert into artst
+- Delete bei referenzierter Relation, z.B. delete from artgru
+- Update des PS Wertes bei referenzierter Relation
+    - z.B. update artgru set gruppe = …
+- Update des FS Wertes bei referenzierender Relation,
+    - z.B. update artst set gruppe = …
+
+
+----
+
+
+Welche kritischen Operationen können die referenzielle Integrität in einem relationalen DBS gefährden? 
+
+Erläutern Sie bitte 2 dieser Operationen anhand des Beispiels: Gegeben sind die Relationen 
+AuftragsPosition (aufnr, posnr, menge, ArtikelStamm->artnr) und 
+ArtikelStamm (artnr, artbez, ekpreis). (5 Punkte)
+
+
+---
+
+答案: 
+der Fremdschlüssel ist ja eine integritätsbedingung und gehört zu diesen ja Modell Integritätsbedingungen
+
+1 Delete operation
+Löschen eines Primärschlüssels in der referenzierten Tabelle
+
+2 Update operation
+- Ändern eines Primärschlüssels in der referenzierten Tabelle
+- Updaten des Fremdschlüssels auf einen nicht existierenden Primärschlüssel
+
+
+3 Insert operation 
+Erstellen von Auftragsposition mit Fremdschlüssel der keinen Datensatz in ArtikelStamm referenziert
+
+
+

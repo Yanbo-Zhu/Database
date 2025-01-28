@@ -206,3 +206,46 @@ revoke select on lagerbestand from controlling;
 drop role controlling;
 ```
 
+
+
+
+9
+
+Welche Möglichkeiten gibt es, die nachfolgende Integritätsbedingung im SQL-Standard umzusetzen: das Umsatzsoll der Kunden soll mindestens 10.000 € betragen.
+
+答案
+
+Die folgenden Optionen sind korrekt, um die Integritätsbedingung, dass das Umsatzsoll der Kunden mindestens 10.000 € betragen soll, im SQL-Standard umzusetzen:
+
+1. **check (umssoll > 10000) - bei CREATE TABLE**  
+    Dies ist eine einfache Möglichkeit, die Bedingung direkt in der Tabelle zu definieren, wenn sie erstellt wird.
+    
+2. **CHECK (VALUE > 10000); und Nutzung der Domäne umsatzsollbegrenzug bei CREATE oder ALTER TABLE als Datentyp**  
+    Erstellen Sie eine Domäne (z.B. `umsatzsollbegrenzug`), die die Bedingung enthält, und wenden Sie sie auf die entsprechende Spalte an.
+    
+3. **durch einen BEFORE INSERT OR UPDATE OF UMSSOLL ON KDST - Trigger**  
+    Ein Trigger vor dem Einfügen oder Aktualisieren kann die Bedingung überprüfen und sicherstellen, dass das Umsatzsoll die Mindestgrenze von 10.000 € nicht unterschreitet.
+    
+4. **check (umssoll > 10000) - bei ALTER TABLE**  
+    Falls die Tabelle bereits existiert, kann die Bedingung auch später über `ALTER TABLE` hinzugefügt werden.
+    
+
+Die folgenden Optionen sind jedoch **nicht geeignet**:
+
+- **durch einen Primärschlüssel**  
+    Ein Primärschlüssel dient zur Identifizierung von Datensätzen, nicht zur Validierung von Bedingungen wie dem Mindestumsatz.
+    
+- **durch alleine einen BEFORE INSERT ON KDST - Trigger**  
+    Ein `BEFORE INSERT`-Trigger alleine überprüft nur die eingefügten Werte, aber es könnte sein, dass auch ein Update erforderlich ist, um die Integrität zu wahren.
+    
+- **durch einen BEFORE UPDATE OF UMSSOLL ON KDST - Trigger**  
+    Ein Trigger, der nur auf das Update der `UMSSOLL`-Spalte reagiert, könnte ebenfalls nicht ausreichen, wenn der Wert einmalig gesetzt wurde und später nicht geändert wird.
+    
+- **durch einen entsprechenden Fremdschlüssel auf Umsatzsoll in einer Umsatzsolltabelle**  
+    Ein Fremdschlüssel stellt eine Beziehung zwischen zwei Tabellen her, aber er überprüft nicht direkt die Integrität von Werten in einer einzelnen Tabelle.
+
+
+
+10
+
+

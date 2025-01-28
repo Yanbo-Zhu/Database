@@ -150,6 +150,8 @@ Alternatively, **optimistic concurrency control** can be used, where the system 
 
 A **Non-Repeatable Read** occurs when a transaction reads the same data multiple times, but the value has been changed by another transaction in between those reads. This creates an inconsistency where the same data is read twice with different results.
 
+每次transcation 读取同一个参数的值不一样, 因为中途被改变了
+
 Eine Transaktion liest einen Wert mehrfach, aber der Wert wurde zwischen den Lesevorgängen durch die andere Transaktion verändert.
 
 - **Ergebnis**:  
