@@ -27,10 +27,8 @@ Seit SQL-99 im Standard enthalten
 
 ```
 create [or replace] trigger TriggerName
-{before I after} TriggerEreignis
-on TabellenName
-[referencing {old I new I old_table I new_table}
-[as] TransitionsVariable]
+{before I after} TriggerEreignis on TabellenName
+[referencing {old | new | old_table | new_table} [as] TransitionsVariable]
 [for each row | for each statement ] 
 [when (TriggerBedingung) ]
 Begin
@@ -98,13 +96,10 @@ AFTER UPDATE ON table_name
 FOR EACH ROW
 BEGIN
     -- Protokollierung nach der Aktualisierung
-    INSERT INTO audit_log (action, timestamp)
-    VALUES ('UPDATE', NOW());
+    INSERT INTO audit_log (action, timestamp) VALUES ('UPDATE', NOW());
 END;
 
 ```
-
-
 
 
 
@@ -136,6 +131,7 @@ For each row, 如果要对 each row 都执行一次 action 中的 dml, 则需要
 ```
 when (new.aufnr != 99)
 ```
+
 ### 2.1.6 TriggerAktion
 
 #### 2.1.6.1 if 某个 aktion 
@@ -146,16 +142,17 @@ FOR EACH ROW
 when (new.aufnr 99)
 declare
 status_alt aufkopf.s_status%TYPE;
+
 BEGIN
-if inserting then
-status alt null;
-else
-status alt :old.s status;
-end if;
-insert into status_log
-dbms_output:put_line('statusänderung protokolliert von auftrag:
+    if inserting then
+        status alt null;
+    else
+        status alt :old.s status;
+    end if;
+
+    insert into status_log values(:new.aufnr,status_alt,:new.s_status,sysdate);
+    dbms_output:put_line('statusänderung protokolliert von auftrag:  '|| :new.aufnr);
 END;
-'II :new.aufnr);
 ```
 
 #### 2.1.6.2 set 的使用 
@@ -240,7 +237,7 @@ SQL Standard
 ```
 create trigger tr_kdst
 before update of umssoll on kdst
-referencing old as oldrow new as newrow
+referencing old as oldrow  new as newrow
 for each row
 when (newrow.umssoll > 1.25 * oldrow.umssoll)
 set (newrow.umssoll = 125 * oldrow.umssoll);
@@ -511,4 +508,7 @@ END;
 
 答案 是 0 
 die Tabelle STATUS_LOG hat keinen Einfluss auf die Ausführung des Triggers, in sie wird lediglich hineingeschriebe
+
+um eine Variable zu deklarieren, die denselben Datentyp wie die Spalte **`s_status`** der Tabelle **`aufkopf`** hat.
+
 

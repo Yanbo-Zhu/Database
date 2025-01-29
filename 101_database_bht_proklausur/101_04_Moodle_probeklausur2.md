@@ -61,7 +61,6 @@ foreign key (mitgliedsnummer) references mitglied(mitgliedsnummer));
 
 ```
 create table mitgliedschaft
-
 (mitgliedsnummer int,
 eintrittsdatum date,
 austrittsdatum date,

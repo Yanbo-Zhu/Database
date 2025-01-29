@@ -20,6 +20,15 @@ Die Relation soll in der ersten Normalform vorliegen!
 
 解答
 
+Ein **Primärschlüssel (PK)** ist eine Menge von Attributen, die eine Zeile in einer Relation eindeutig identifiziert. Ein Primärschlüssel zeichnet sich durch folgende Eigenschaften aus:
+1. **Eindeutigkeit** – Jedes Tupel in der Relation hat einen einzigartigen Wert für den Primärschlüssel.
+2. **Minimalität** – Es dürfen keine überflüssigen Attribute enthalten sein.
+3. **Nicht-Null (Not NULL)** – Der Primärschlüssel darf keine `NULL`-Werte enthalten.
+
+
+----
+
+
 {AID} -> {KdID}
 AID ist primar key 
 
@@ -32,6 +41,16 @@ APosition muss auch primar key .  as kombinierte primar keys,
 
 {Taetigkeit, Arbeitszeit}  ->  {Preis}
 不需要 {Taetigkeit, Arbeitszeit}  als primar key, 因为 {AID, APosition} -> Preis 
+
+
+- Ein **Schlüssel** ist eine minimale Menge von Attributen, die alle anderen Attribute der Relation funktional bestimmt.
+- Aus `{AID, APosition} -> {Taetigkeit, Arbeitszeit}` und `{Taetigkeit, Arbeitszeit} -> {Preis}` folgt `{AID, APosition} -> {Taetigkeit, Arbeitszeit, Preis}`.
+- Zusätzlich bestimmt `AID` die Kundendaten `{KdID, KdName, KdStrasse, KdPLZ, KdOrt}`, also gilt:
+    - ``{AID, APosition} -> {KdID, KdName, KdStrasse, KdPLZ, KdOrt, Taetigkeit, Arbeitszeit, Preis}``
+
+**Primärschlüssel der Relation `Auftrag`**:
+`{AID, APosition}`
+Jede Kombination aus `AID` (Auftragsnummer) und `APosition` (Position innerhalb des Auftrags) identifiziert eindeutig eine Zeile in der Tabelle.
 
 ---
 wenn 2 NF vorliegen 
@@ -61,7 +80,7 @@ Wie sieht die Ergebnismenge dieser beiden Tabellen nach einer „union all“-Op
 
 union : Duplikate Tupel wird eliminiert.  keine dopplung
 
-
+union: Duplikate Tupel wird nicht beseitigt 
 
 
 ## 1.3 
@@ -76,14 +95,14 @@ when (new.aufnr != 99)
 declare
 status_alt aufkopf.s_status%TYPE;
 BEGIN
-if inserting then
-status_alt := null;
-else
-status_alt := :old.s_status;
-end if;
-insert into status_log
-values(:new.aufnr,status_alt,:new.s_status,sysdate);
-dbms_output.put_line('statusänderung protokolliert von auftrag: '|| :new.aufnr);
+    if inserting then
+        status_alt := null;
+    else
+        status_alt := :old.s_status;
+    end if;
+    
+    insert into status_log values(:new.aufnr,status_alt,:new.s_status,sysdate);
+    dbms_output.put_line('statusänderung protokolliert von auftrag: '|| :new.aufnr);
 END;
 ```
 
@@ -91,19 +110,55 @@ spalten: auftragsnummer, alter status, neuer status, aktuelles datum?
 Reihnfolge 必须尊重,   这四个 Spalte 之后 原来的 table 有更多的 spalte  是可以的 
 
 
+Der gegebene Trigger **`AFTER INSERT OR UPDATE OF S_STATUS ON AUFKOPF`** wird ausgelöst, wenn eine neue Zeile in die Tabelle `AUFKOPF` eingefügt wird **(INSERT)** oder wenn die Spalte `S_STATUS` aktualisiert wird **(UPDATE)**.
+
+**Funktion des Triggers:**
+1. Der Trigger prüft, ob `new.aufnr` **ungleich 99** ist (d.h., er ignoriert Änderungen für den Auftrag mit der Nummer 99).
+2. Wenn ein neuer Eintrag (`INSERT`) erfolgt, wird `status_alt` auf `NULL` gesetzt, da es keinen vorherigen Status gibt.
+3. Wenn ein Update (`UPDATE`) erfolgt, wird `status_alt` auf den alten Wert (`:old.s_status`) gesetzt.
+4. Die Änderungen werden in die Tabelle `status_log` protokolliert.
+5. Eine Ausgabe erfolgt mit `dbms_output.put_line`, um die Statusänderung anzuzeigen.
 
 ---
 
 
+**Erstellung der Tabelle `status_log`**
+
+``` sql
+CREATE TABLE status_log (
+    aufnr NUMBER,        -- Auftragsnummer
+    status_alt VARCHAR2(50),  -- Alter Status (NULL bei INSERT)
+    status_neu VARCHAR2(50),  -- Neuer Status
+    aenderungsdatum DATE -- Änderungszeitpunkt
+);
+```
+
+
+---
 
 Zusatzaufgabe: Wie kann der Trigger ohne Verlust seiner Funktionalität vereinfacht werden? (2 Zusatzpunkte)
 
+Die `if-else`-Struktur für `status_alt` kann vereinfacht werden, indem direkt die Pseudospalten `:old.s_status` und `NULL` verwendet werden.
+Die `if-else`-Struktur entfällt, da `:old.s_status` bei einem `INSERT` automatisch `NULL` ist.
 
-
+```sql
+CREATE OR REPLACE TRIGGER trg_status_log
+AFTER INSERT OR UPDATE OF S_STATUS ON AUFKOPF
+FOR EACH ROW
+WHEN (new.aufnr != 99)
+BEGIN
+    INSERT INTO status_log (aufnr, status_alt, status_neu, aenderungsdatum)
+    VALUES (:new.aufnr, :old.s_status, :new.s_status, SYSDATE);
+    DBMS_OUTPUT.PUT_LINE('Statusänderung protokolliert von Auftrag: ' || :new.aufnr);
+END;
+```
 
 ## 1.4 
 
 Warum normalisiert man Datenbankschemata? Bitte nennen Sie mindestens drei Gründe für die Durchführung der Normalisierung. Erläutern Sie kurz eine der Normalformen mit ihren Worten.
+
+
+
 
 
 # 2 Abfragen mit SQL / Relationenalgebra

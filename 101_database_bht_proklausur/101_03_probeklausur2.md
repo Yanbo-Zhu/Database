@@ -23,25 +23,31 @@ Löschen eines Primärschlüssels in der referenzierten Tabelle
 
 
 3 Insert operation 
-Erstellen von Auftragsposition mit Fremdschlüssel der keinen Datensatz in ArtikelStamm referenziert
+Erstellen von Auftragsposition mit Fremdschlüssel, der keinen Datensatz in ArtikelStamm referenziert
 
 
 ## 1.2 intersect
 
+
+Welche Aussage ist mit dem SQL-Operator „intersect“ generell möglich? Unter welchen (zwei) Voraussetzungen kann dieser Operator eingesetzt werden? Welche Aussage produziert die folgende SQL-Anweisung, wenn gilt, dass die Namen aller Geschäftspartner eindeutig sind? (5 Punkte)
+```sql
+Select name from kunde
+Intersect
+Select name from lieferant;
+```
+
+
+
+
+Intersect" Schnittmenge zwischen zwei SELECT Anfragen
+Union: Beim Union: gleich Datensatz nicht zweimal auftauchen, Duplikat nicht vorzeigen  
+Unioin ALL : Duplikat kann vorzeigen  
+Minus/Except:  Differenzmenge minus oder except
+
+---
+
 Welche Aussage ist mit dem SQL-Operator „intersect“ generell möglich? 
 - Schnittmenge zwischen zwei SELECT Anfragen
-
-
-Intersect
-- Schnittmenge zwischen zwei SELECT Anfragen
-
-Union: 
-Beim Union: gleich Datensatz nicht zweimal auftauchen, Duplikat nicht vorzeigen  
-
-Unioin ALL : Duplikat kann vorzeigen  
-
-Minus/Except: 
-Differenzmenge minus oder except
 
 ---
 
@@ -60,9 +66,7 @@ Intersect
 Select name from lieferant;
 ```
 
-**"Gibt die Namen aller Personen oder Unternehmen zurück, die sowohl Kunden als auch Lieferanten sind."**
-
-Das ein Geschäftspartner sowohl Lieferant als auch Kunde ist
+Gibt die Namen aller Personen zurück, die sowohl Kunden als auch Lieferanten sind
 
 
 

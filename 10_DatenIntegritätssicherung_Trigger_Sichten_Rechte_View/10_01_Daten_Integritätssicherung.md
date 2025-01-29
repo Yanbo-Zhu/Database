@@ -118,7 +118,7 @@ Die folgenden Optionen sind jedoch **nicht geeignet**:
 
 
 
-# 2 die referenzielle Integrität
+# 2 die referenzielle Integrität (foreign key)
 
 
 ## 2.1 Gefährdung der referenziellen Integrität durch schreibende  Operationen:
@@ -137,6 +137,7 @@ Die folgenden Optionen sind jedoch **nicht geeignet**:
 
 ----
 
+例子 
 
 Welche kritischen Operationen können die referenzielle Integrität in einem relationalen DBS gefährden? 
 
@@ -144,8 +145,6 @@ Erläutern Sie bitte 2 dieser Operationen anhand des Beispiels: Gegeben sind die
 AuftragsPosition (aufnr, posnr, menge, ArtikelStamm->artnr) und 
 ArtikelStamm (artnr, artbez, ekpreis). (5 Punkte)
 
-
----
 
 答案: 
 der Fremdschlüssel ist ja eine integritätsbedingung und gehört zu diesen ja Modell Integritätsbedingungen

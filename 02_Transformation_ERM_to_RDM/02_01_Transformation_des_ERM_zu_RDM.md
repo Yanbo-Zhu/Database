@@ -162,7 +162,32 @@ Der Primärschlüssel des Entitätentyps Wird als Fremdschlüssel zweimal in die
 ![](image/Pasted%20image%2020241113112626.png)
 
 
-### 2.3.5 Ein n-närer Beiyhungstyp 
+---
+
+
+3 . Wie kann ein rekursiver (unärer) Relationshiptyp grundsätzlich auf das Relationale Datenmodell abgebildet werden? Beschreiben Sie dies bitte kurz und verwenden Sie ein eigenes Beispiel für die Darstellung. (5 Punkte)
+
+Ein **rekursiver (unärer) Relationshiptyp** beschreibt eine Beziehung zwischen Entitäten derselben Entitätsmenge. Um diese in ein relationales Datenmodell zu überführen, wird eine **Fremdschlüsselspalte** in der Tabelle eingefügt, die auf den Primärschlüssel derselben Tabelle verweist.
+
+Vorgehen zur Abbildung**
+1. **Erstellung der Tabelle**: Die Entität wird als Relation (Tabelle) modelliert.
+2. **Primärschlüssel (PK)**: Ein eindeutiger Identifikator für jede Zeile.
+3. **Fremdschlüssel (FK)**: Eine zusätzliche Spalte verweist auf den Primärschlüssel derselben Tabelle, um die Beziehung zu speichern.
+4. **Zusätzliche Attribute**: Weitere relevante Spalten der Entität können hinzugefügt werden.
+
+
+### 2.3.5 Beispiel: Mitarbeiter-Hierarchie (Vorgesetzte & Untergebene)**
+
+Ein Unternehmen speichert Informationen über seine **Mitarbeiter**. Jeder Mitarbeiter kann einen **Vorgesetzten** haben, der ebenfalls ein Mitarbeiter ist. Dies stellt eine **rekursive 1:N-Beziehung** dar (ein Vorgesetzter hat mehrere Untergebene, ein Mitarbeiter hat maximal einen Vorgesetzten).
+
+![](image/Pasted%20image%2020250130000009.png)
+
+- `MitarbeiterID` ist der Primärschlüssel.
+- `VorgesetzterID` ist ein **Fremdschlüssel**, der auf `MitarbeiterID` verweist.
+- Alice (CEO) hat keinen Vorgesetzten (`NULL`).
+- Bob berichtet an Alice, Carol an Bob, David an Carol.
+
+### 2.3.6 Ein n-närer Beiyhungstyp 
 
 Ein n-ärer Beziehungstyp Wird auf eine Relation abgebildet: 
 Die Primärschlüssel der Entitätentypen, die an der Beziehung teilnehmen, werden als Fremdschlüssel in diese Relation übergeben und bilden i.d.R. deren zusammengesetzten Primärschlüssel. Attribute des Beziehungstyps werden ebenso dieser Relation zugeordnet.

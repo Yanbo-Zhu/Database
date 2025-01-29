@@ -80,7 +80,36 @@ From prasenz 01
 - Die Kundenaufträge werden je nach Bearbeitungsstand in 4 Status-Kategorien eingeordnet (erfasst, bestätigt, geliefert, fakturiert). Jeder Auftrag kann zu einem Zeitpunkt nur genau einen Status annehmen.
 
 
-## 2.2 逐条分析 
+## 2.2 一些只是 
+
+ Auftragsposition: 
+-  Poste des Produktes
+- Ein Posten ineinem Auftrag, der Teil eines Gesamtaustrags ist. Sie beschreibt detailiert die spezifische Ware oder Dienstleitstung, die bestelle wurde
+- Typische Information, die in einer Auftragsposition enthalten sein können
+    - Artikelbeziehung oder Dienstleistung
+    - Menge
+    - Unite Price
+    - Total cose fuer the item
+    - Delivery date or time frame
+    - Any other relevant details necessary fuer fullfilling the order 
+
+Order items
+- Individual items within an order, deteailing specific goals or services that have been requested as a past of tier overalls order 
+
+
+## 2.3 总图
+
+
+![](image/Pasted%20image%2020250127182353.png)
+
+
+![](image/Pasted%20image%2020250127182426.png)
+
+
+
+
+
+## 2.4 逐条分析 
 
 
 1 
@@ -91,15 +120,31 @@ Jeder Vertreter betreut einen ihm zugewiesenen Kreis von Kunden. Ein Kunde Wird 
 
 ![](image/Pasted%20image%2020250127181932.png)
 
+
+![](image/Pasted%20image%2020250129233451.png)
+
+
 ---
 2 
 
 Von den Kunden werden Aufträge entgegengenommen, die jeweils ein bis mehrere Artikel de Sortiments des Unternehmens in bestimmten Mengen umfassen.
 
+Kunde -> Auftraege -> Artikel -> Unternehmen 
+
 ![](image/Pasted%20image%2020250127182207.png)
 
 
 ![](image/Pasted%20image%2020250127182217.png)
+
+![](image/Pasted%20image%2020250129234017.png)
+
+
+Auftragposition:
+- Auftragposition gehoert ganz zu ein Auftraege
+
+Menge:  Anzahl des Artikels
+- Artikel 可以被 Menge grupppiert
+- Auftraeg 不适合被 Menge gruppiert 
 
 
 ---
@@ -109,6 +154,17 @@ nicht unterstellt sein.).
 
 ![](image/Pasted%20image%2020250127182156.png)
 
+---
+
+不能用 1:N Beziehungstypen. 这种的劣势是 
+-  manche Einitaet (11, 121 mus zeimal abgespeichert , in zwei Tabelle )
+- 如果修改 需要两处都修改 
+
+![](image/Pasted%20image%2020250129234404.png)
+
+
+Rekursiven Beziehungstyp
+![](image/Pasted%20image%2020250129234754.png)
 
 ---
 
@@ -120,16 +176,12 @@ Die alten Statusangaben sollen bei Statusänderung erhalten bleiben.
 
 ![](image/Pasted%20image%2020250127182322.png)
 
+![](image/Pasted%20image%2020250129234828.png)
+
+---
 
 
 5
 
 Einzelne Auftragspositionen können mit Teillieferungen beliefert werden, so dass die noch zu
 liefernde Restmenge jederzeit ablesbar sein muss. Pro Position werden ein Liefertermin und ein ositionss ezifischer Preis vereinbart.
-
-![](image/Pasted%20image%2020250127182353.png)
-
-
-![](image/Pasted%20image%2020250127182426.png)
-
-

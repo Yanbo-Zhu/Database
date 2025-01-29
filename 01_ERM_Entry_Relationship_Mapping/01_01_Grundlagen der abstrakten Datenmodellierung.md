@@ -126,6 +126,8 @@ Attribute werden (auch hier) als Ovale mit einer Linie mit der entsprechenden Ra
 
 ## 3.5 Darstellung von Kardinalitäten
 
+![](image/Pasted%20image%2020250129233410.png)
+
 ![](image/Pasted%20image%2020241117204252.png)
 
 ### 3.5.1 (1,M,N) Notation

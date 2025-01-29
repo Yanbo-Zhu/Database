@@ -48,6 +48,114 @@ z.B. (Zu einem Lieferanten kann keine oder genau eine Adresse hinterlegt sein �
 
 
 
+## 1.3 问答题 
+
+
+
+
+Welche Schemata kommen in einer schichtenorientierten Datenbank-Architektur vor?
+anwenderseitiges oder externes Schema 
+adressorientiertes Schema
+konzeptuelles Schema 
+logistisches Schema
+physisches oder internes Schema
+
+Die richtigen Antworten sind:
+anwenderseitiges oder externes Schema,
+physisches oder internes Schema,
+konzeptuelles Schema
+
+---
+
+
+
+Welche Komponenten der Datenbank-Architektur werden bei einer lesenden Anfrage eingesetzt? 
+
+- Query-Prozessor
+- Optimierer
+- Integritätsprüfung
+- Transaktionsmanager
+- Logbuch
+- Ein- / Ausgabe-Prozessor
+- Update-Prozessor
+- Autorisierungskontrolle
+
+Korrekte Antworten
+1. **Query-Prozessor**
+    - Aufgabe: Interpretiert und verarbeitet die Abfrage, wandelt sie in ausführbare Operationen um und übermittelt sie an die Datenbank.
+    - Begründung: Essenziell für jede Anfrage, da ohne den Query-Prozessor keine Abfrage ausgeführt werden kann.
+2. **Optimierer**
+    - Aufgabe: Optimiert die Anfrage, um die effizienteste Ausführungsstrategie zu finden (z. B. Wahl des besten Index oder der optimalen Join-Reihenfolge).
+    - Begründung: Auch bei lesenden Anfragen wichtig, um die Leistung zu verbessern.
+3. **Ein-/Ausgabe-Prozessor**
+    - Aufgabe: Stellt sicher, dass die erforderlichen Daten aus dem physischen Speicher (z. B. Festplatte) abgerufen und an den Query-Prozessor übergeben werden.
+    - Begründung: Notwendig, um auf die physischen Daten zuzugreifen.
+4. **Autorisierungskontrolle**
+    - Aufgabe: Überprüft, ob der Benutzer berechtigt ist, die angeforderten Daten zu lesen.
+    - Begründung: Stellt sicher, dass nur autorisierte Benutzer Zugriff auf die Daten haben.
+- 2. **Transaktionsmanager**
+    - Aufgabe: Verwalten von Transaktionen, um ACID-Eigenschaften sicherzustellen.
+    - Begründung: Wird  benötigt, wenn eine Transaktion eine Konsistenzgarantie erfordert (z. B. bei lesende oder konkurrierenden Zugriffen oder schreibenden Operationen).
+3. **Logbuch**
+    - Aufgabe: Protokolliert Änderungen an der Datenbank für Wiederherstellung und Fehlerbehebung.
+    - Begründung: Wird  bei  lesende oder schreibenden Anfragen oder Transaktionen benötigt, nicht bei lesenden Anfragen.
+
+
+
+Falsche Antworten
+1. **Integritätsprüfung**
+    - Aufgabe: Prüft die Einhaltung von Integritätsregeln (z. B. Fremdschlüssel oder Constraints).
+    - Begründung: Wird primär bei schreibenden Anfragen (z. B. Insert, Update) benötigt, nicht bei lesenden.
+
+4. **Update-Prozessor**
+    - Aufgabe: Verarbeitet Änderungen an der Datenbank (z. B. Insert, Update, Delete).
+    - Begründung: Ist für lesende Anfragen irrelevant, da keine Änderungen vorgenommen werden.
+
+
+
+
+----
+
+Welche Komponenten der Datenbank-Architektur werden bei einem schreibenden Zugriff eingesetzt?
+
+Integritätsprüfung 
+Update-Prozessor 
+Anwendungskontrolle
+Transaktionsmanager 
+Logbuch 
+Druckausgabe-Monitor
+Optimierer
+Query-Prozessor
+
+Die richtigen Antworten sind:
+Query-Prozessor,
+Optimierer,
+Transaktionsmanager,
+Logbuch,
+Update-Prozessor,
+Integritätsprüfung
+
+
+
+---
+
+写入笔记 
+Welche der Aussagen sind korrekt?
+
+Wählen Sie eine oder mehrere Antworten:
+Relationshiptypen werden als Kanten mit Rauten dargestellt. 
+Attribute können nur Entitytypen zugeordnet werden.
+Beziehungstypen werden als Kanten mit Ovalen dargestellt.
+Entitytypen werden als Rechtecke dargestellt.
+
+
+Die richtigen Antworten sind: 
+Entitytypen werden als Rechtecke dargestellt., 
+Relationshiptypen werden als Kanten mit Rauten dargestellt
+
+---
+
+
 # 2 Transformation_des_ERM_zu_RDM
 
 
@@ -71,11 +179,26 @@ Modellelemente:
     - Primärschlüssel
     - Fremdschlüssel
 
+
+Entitytyp  -> Releation 
+Attribute  -> Attribute von Reletion 
+
 ## 2.2 Transformation der grundlegenden Modellelemente des ERM ins RDM
 
 Transformation von Entitätentypen:
     - Ein Entitätentyp und seine elementaren Attribute wet-den auf eine Relation und deren Attribute abgebildet.
 ### 2.2.1 Transformation von Beziehungstypen 
+
+- Ein Beziehungstyp der Kardinalität 1:1
+    - 不需要额外的table for Bezihung 
+    - FS zu beliebig Seite
+- Ein Beziehungstyp der Kardinalität 1:N oder N:1
+    - 不需要一个Schema table ,  
+    - FS 放到N seite 
+- Beziehungstyp der Kardinalität M:N
+    - 需要一个table,  FS von linker Seite und rechte Seite 都填到这个 新的  0 Tabelle 中 
+    - `(0, *) ` 的关系就是 对应的是1kardinalität M:N 
+    - ==切记新的Relation中是kombinierte Pirmiarschlussel, 不是单一的schlussel==
 
 Ein Beziehungstyp der Kardinalität 1:1
 - 不需要额外的table for Bezihung 
@@ -147,12 +270,30 @@ Ein Primärschlüssel ist ein Attribut, welches
 
 除了 "in Bezug auf den Fremdschlüssel einer anderen Relation definiert ist" 其他都是正确的 
 
+
+
+## 2.4 问答题 
+
+
+Was ist die geniale Idee des Relationalen Datenmodells, die es von den Vorgängermodellen unterscheidet?
+Wählen Sie eine oder mehrere Antworten:
+jegliche Information wird über Werte ausgedrückt 
+es wird mit zweidimensionalen Tabellen gearbeitet 
+Fremdschlüssel sorgen als Sekundärschlüssel für eine verbesserte Performance.
+Zugriffspfade werden zur Beschleunigung von Anfragen genutzt
+
+Die richtigen Antworten sind: jegliche Information wird über Werte ausgedrückt, es wird mit zweidimensionalen
+
+
+
+
 # 3 Normal Form 
 
 
 Welche Ziele hat die Normalisierung?
-Ziel hinsichtlich Zugriffsoperationen: → ==Optimierung schreibende Zugriffe==
-Ziel hinsichtlich Redundanz: Redundanzminimierung
+- Ziel hinsichtlich Zugriffsoperationen: → ==Optimierung schreibende Zugriffe==
+- Ziel hinsichtlich Redundanz: Redundanzminimierung
+- **Verbesserung der Datenintegrität und Konsistenz**
 
 Ein Ziel der Normalisierung ist die Beseitigung von ==ANOMALIEN==
 
@@ -194,10 +335,10 @@ We have to focus on some basic rules that are for BCNF:
 - relation: 一个 realtion 1就是一个 table 
 - tuple: Element 的组合 von eine Relation ( table )  
     - t1 ={ name, number, ... , }  这些都是 attribute von table 
-- **π = Projection**
+- **π = Projection**  select 
     - The projection operator selects specific attributes (columns) from a relation (table).
     - `π[A.SiteNo, B.SiteNo]`:   select a.siteno, b.siteno
-- **σ = Selection**
+- **σ = Selection** where 
     - The selection operator filters tuples (rows) from a relation based on a given condition.
     - ` σ [A.LinksTo = B.SiteNo](A x B)`: where a.linksto = b.siteno
 - ρ = Renaming
@@ -326,5 +467,69 @@ Zusammengefasst:
 
 # 8 Trigger 
 
+## 8.1 Create a Trigger 
+```sql
+create [or replace] trigger TriggerName
+{before I after} TriggerEreignis on TabellenName
+[referencing {old | new | old_table | new_table} [as] TransitionsVariable]
+[for each row | for each statement ] 
+[when (TriggerBedingung) ]
+Begin
+TriggerAktion
+End;
+```
+1 
+TriggerEreignis: insert or update or delete 
+2 
+referencing old as oldrow  new as newrow
+
+3 when
+```
+when (newrow.umssoll > 1.25 * oldrow.umssoll)
+set (newrow.umssoll = 125 * oldrow.umssoll);
+```
+
+3 
+declare
+```
+declare status_alt aufkopf.s_status%TYPE;
+
+declare statement varchar2(30);
+
+```
+
+4 
+TriggerAktion
+
+```
+BEGIN
+    -- Validierung oder Anpassung vor der Einfügung
+    IF NEW.column_name IS NULL THEN
+        SET NEW.column_name = 'Default Value';
+    END IF;
+
+    -- Protokollierung nach der Aktualisierung
+    INSERT INTO audit_log (action, timestamp) VALUES ('UPDATE', NOW());
+
+    INSERT INTO auftrag_has_status VALUES(:new.aufnr,:new.s_status,sysdate);
+
+    :newrow.umssoll := 1.25 * :oldrow.umssoll;
+END;
+```
+
+```
 
 
+
+```
+
+## 8.2 alter trigger
+
+alter trigger TriggerName disable;
+Anmerkung: lediglich Aktivieren / Deaktivieren möglich
+
+
+
+## 8.3 drop trigger 
+
+drop trigger TriggerName;
