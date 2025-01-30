@@ -245,18 +245,86 @@ Ausgegangen werden soll von Lehreinheiten als größeren, inhaltlich orientierte
 
 Zu jeder Lehreinheit werden momentan jeweils 8 Kurseinheiten angeboten sowie ein Praktikum als weitere Kurseinheit. Kurseinheiten der Lehreinheit „Datenbanksysteme“ sind beispielsweise „Einführung in SQL“ oder „XML und Datenbanken“.
 
-Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Je Abschnitt werden in variabler Anzahl Übungsaufgaben und zu diesen wiederum Beispiellösungen in variabler Anzahl angeboten. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-)Abschnitt. Die Übungsaufgaben sind eindeutig einem entsprechenden Lehrheftabschnitt zugeordnet.
+Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. 
+Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. 
+Je Abschnitt werden in variabler Anzahl Übungsaufgaben und zu diesen wiederum Beispiellösungen in variabler Anzahl angeboten. 
 
+Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-)Abschnitt. 
+Die Übungsaufgaben sind eindeutig einem entsprechenden Lehrheftabschnitt zugeordnet.
+
+---
 
 
 Gehen Sie bitte von nachfolgend dargestelltem Sachverhalt aus und beantworten Sie die Fragen:
 9.1 Bitte entwickeln Sie das Datenmodell für die Abbildung des Sachverhaltes. Stellen Sie das Datenmodell in Form eines ER-Diagramms mit (min,max)-Notation dar. Die Attribute können in dieser Darstellung weggelassen werden. (12 Punkte)
 
+---
+
+
 9.2 Leiten Sie aus dem ER-Diagramm aus 9.1 normalisierte Relationen ab. Definieren Sie dazu die entsprechenden Primär- und Fremdschlüssel. Ordnen Sie bitte alle angesprochenen Attribute zu und entwickeln sie, wenn nötig, eigene Attribute. Je Relation soll mindestens ein Nichtschlüsselattribut existieren. Notieren Sie die Relationen in Relationenschreibweise. (12 Punkte)
+
+Lehreinheit
+(idlehreinheit, bezeichnung)
+
+kurseinheit
+(idkurseinheit, idlehreinheit -> lehreinheit.idlehreinheit, bezeichnung)
+
+lehrheft
+(idlehrheft, idkurseinheit -> kurseinheit.idkurseinheit, bezeichnung)
+
+abschnitt
+(idabschnitt, idlehrheft -> lehrheft.idlehrheft,  übergeordnete_abschnitt -> abschnitt.idabschnitt , hauptüberschrift, text)
+
+übungsaufgabe
+(iduebungsaufgabe, idabschnitt-> abschnitt.idabschnitt,  text )
+
+beispiellösunge
+(idbeispielloesung, iduebungsaufgabe-> übungsaufgabe.iduebungsaufgabe,  text )
+
+---
+
 
 9.3 Entwickeln Sie bitte für die aus 9.2. resultierende(n) Relation(en) für die Abbildung von Lehrheften mit entsprechenden Abschnitten den (die) entsprechenden „create table“-Befehl(e), mit Abbildung der Primär- und Fremdschlüssel. (10 Punkte)
 
-9.4 Es soll nachträglich die Relation für die Abbildung von Lehrheften ergänzt werden um die Angabe eines Autorennamens über eine zusätzliche Spalte. Diese soll eine variabel lange Zeichenkette von max. 30 Zeichen aufnehmen können. Alle existierenden Lehrhefte wurden bisher von dem Autor „Max Meier“ publiziert. Diese Angabe soll in alle verfügbaren Zeilen eingetragen werden. Setzen Sie dies bitte mit SQL um. (6 Punkte)
+```
+CREATE TABLE lehrheft (
+    idlehrheft INT PRIMARY KEY,
+    bezeichnung VARCHAR(100) NOT NULL,
+    idkurseinheit INT NOT NULL,
+    FOREIGN KEY (idkurseinheit) REFERENCES kurseinheit(idkurseinheit)
+);
+
+
+CREATE TABLE abschnitt (
+    idabschnitt INT PRIMARY KEY,
+    hauptüberschrift VARCHAR(100) NOT NULL,
+    text idabschnitt NOT NULL,
+    idlehrheft INT NOT NULL,
+    übergeordnete_abschnitt INT NOT NULL,
+    FOREIGN KEY (idlehrheft) REFERENCES lehrheft(idlehrheft)
+    FOREIGN KEY (übergeordnete_abschnitt) REFERENCES abschnitt(idabschnitt)
+);
+```
+
+
+
+---
+
+
+9.4 
+Es soll nachträglich die Relation für die Abbildung von Lehrheften ergänzt werden, um die Angabe eines Autorennamens über eine zusätzliche Spalte. Diese soll eine variabel lange Zeichenkette von max. 30 Zeichen aufnehmen können.
+
+Alle existierenden Lehrhefte wurden bisher von dem Autor „Max Meier“ publiziert. Diese Angabe soll in alle verfügbaren Zeilen eingetragen werden. 
+
+Setzen Sie dies bitte mit SQL um. (6 Punkte)
+
+
+```sql
+ALTER TABLE lehrheft ADD COLUMN Autor VARCHAR(30); 
+
+UPDATE lehrheft set Autor='Max Meier';
+```
+
 
 
 

@@ -119,7 +119,76 @@ ALTER TABLE employees DROP CONSTRAINT check_salary;
 
 # 6 SQL
 
-## 6.1 Join 
+
+## 6.1 Select 语句执行顺序 
+
+
+```
+select 字段
+from 表名
+where …….
+group by ……..
+having …….(就是为了过滤分组后的数据而存在的—不可以单独的出现)
+order by ……..
+
+```
+
+以上语句的执行顺序
+1.         首先执行where语句过滤原始数据
+2.         执行group by进行分组
+3.         执行having对分组数据进行操作
+4.         执行select选出数据
+5.         执行order by排序
+
+原则：能在where中过滤的数据，尽量在where中过滤，效率较高。having的过滤是专门对分组之后的数据进行过滤的。
+
+
+## 6.2 where 
+
+聚合函数 
+Count(),  sum() , avg() , max() , min() , distinct()
+
+特别重要 在 where 后都不能用 这个5个分组函数 count, sum, avg, max, min， 因为分组函数是在 where之后执行的
+
+分组函数 必须在分完组之后 执行 ， 就是说 group 在 group by 之后执行  ( group by 在  where 之后 )
+所以 **SELECT** ename, sal **AS** Salary **from** emp **WHERE** SAL > **AVG**(SAL) ; 这样会报错
+
+这个5个分组函数 count, sum, avg, max, min  都会自动忽略null
+
+
+
+## 6.3 having 
+
+```
+select job, avg(sal) from emp group by job having avg(sal) >2000;
+```
+
+
+```
+SELECT MIN(salary),department_id
+FROM employees
+GROUP BY department_id
+HAVING MIN(salary)>(
+	SELECT  MIN(salary)
+	FROM employees
+	WHERE department_id = 50
+);
+
+```
+
+## 6.4 SetOperation 
+
+- Intersect
+    - Schnittmenge zwischen zwei SELECT Anfragen
+- Union: 
+    - Beim Union: gleich Datensatz nicht zweimal auftauchen, Duplikat nicht vorzeigen  
+- Unioin ALL
+    - Duplikat kann vorzeigen  
+- Minus/Except: 
+    - Differenzmenge minus oder except
+
+
+## 6.5 Join 
 
 
 
@@ -153,7 +222,7 @@ order by aufnr;
 ```
 
 
-## 6.2 Unteranfrage 
+## 6.6 Unteranfrage 
 
 wo genau Unterabfragen in SQL-Statements vorkommen können
 - Select-Closure: es liefert eine splate fur ergebnisstablle 
@@ -161,7 +230,7 @@ wo genau Unterabfragen in SQL-Statements vorkommen können
 - Where-Closure: Filtern von Zeilen
 - HAVING-Closure: Filtern von Zeilen
 
-## 6.3 not in and not existes
+## 6.7 not in and not existes
 
 ```sql
 select k.kdnr,k.firma, k.plz,k.ort
@@ -182,9 +251,9 @@ where k.kdnr=a.kdnr);
 
 
 
-### 6.3.1 Any and all
+### 6.7.1 Any and all
 
-```
+```sql
 select name,prov
 from vert
 where prov < any

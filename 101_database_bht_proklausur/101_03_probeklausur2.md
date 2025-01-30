@@ -126,7 +126,10 @@ Ausgegangen werden soll von Lehreinheiten als größeren, inhaltlich orientierte
 
 Zu jeder Lehreinheit werden momentan jeweils 8 Kurseinheiten angeboten sowie ein Praktikum als weitere Kurseinheit. Kurseinheiten der Lehreinheit „Datenbanksysteme“ sind beispielsweise „Einführung in SQL“ oder „XML und Datenbanken“.
 
-Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. Lehrhefte werden von Autoren entwickelt, die nicht mit dem Herausgeber der Lehreinheit übereinstimmen müssen (andere Personen sind möglich). Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-) Abschnitt.
+Zu jeder Kurseinheit, mit Ausnahme des Praktikums, wird jeweils ein Lehrheft angeboten. Ein Lehrheft gehört genau zu einer Kurseinheit. 
+Lehrhefte werden von Autoren entwickelt, die nicht mit dem Herausgeber der Lehreinheit übereinstimmen müssen (andere Personen sind möglich).
+
+Ein Lehrheft umfasst verschiedene Abschnitte mit jeweils einer Hauptüberschrift und dem eigentlichen Text. Abschnitte sind hierarchisch gegliedert, d.h. sie können auch Unterabschnitte enthalten. Ein Unterabschnitt gehört genau zu einem übergeordneten (Haupt-) Abschnitt.
 
 Für die Autoren und Herausgeber 发行人 sind neben den persönlichen Adressdaten auch die Koordinaten der Institution, bei der sie beschäftigt sind, zu speichern.
 
@@ -136,10 +139,123 @@ Für die Autoren und Herausgeber 发行人 sind neben den persönlichen Adressda
 
 Gehen Sie bitte von nachfolgend dargestelltem Sachverhalt aus und beantworten Sie die unten angegebenen Fragen:
 9.1 Bitte entwickeln Sie das Datenmodell für die Abbildung des Sachverhaltes. Stellen Sie das Datenmodell in Form eines ER-Diagramms mit (min,max)-Notation dar. Die Attribute können in dieser Darstellung weggelassen werden. (12 Punkte)
+
+----
+
+
 9.2 Leiten Sie aus dem ER-Diagramm aus 9.1 normalisierte Relationen ab. Definieren Sie dazu die entsprechenden Primär- und Fremdschlüssel. Ordnen Sie bitte alle angesprochenen Attribute zu und entwickeln sie, wenn nötig, eigene Attribute. Je Relation soll mindestens ein Nichtschlüsselattribut existieren. Notieren Sie die Relationen in Relationenschreibweise. (12 Punkte)
+
+Lehreinheit
+(idlehreinheit, bezeichnung, idherausgeber - > herausgeber.idherausgeber)
+
+kurseinheit
+(idkurseinheit, idlehreinheit -> lehreinheit.idlehreinheit, bezeichnung)
+
+lehrheft
+(idlehrheft, idkurseinheit -> kurseinheit.idkurseinheit, bezeichnung, idautor -> autor.idautor)
+
+abschnitt
+(idabschnitt, idlehrheft -> lehrheft.idlehrheft,  übergeordnete_abschnitt -> abschnitt.idabschnitt , hauptüberschrift, text)
+
+übungsaufgabe
+(iduebungsaufgabe, idabschnitt-> abschnitt.idabschnitt,  text )
+
+beispiellösunge
+(idbeispielloesung, iduebungsaufgabe-> übungsaufgabe.iduebungsaufgabe,  text )
+
+
+herausgeber
+(idherausgeber, idperson - > person.idperson, ... )
+
+autor
+(idherautor, idperson - > person.idperson, ... )
+
+
+person
+(idperson, address, idinsititut - > insititut.idinsititut )
+
+insititut
+(idinsititut, ... )
+
+---
+
 9.3 Entwickeln Sie bitte für die aus 9.2. resultierende(n) Relation(en) für die Abbildung von Lehrheften mit entsprechenden Abschnitten den (die) entsprechenden „create table“-Befehl(e), mit Abbildung der Primär- und Fremdschlüssel. (10 Punkte)
+
+```sql
+CREATE TABLE Institution (
+    InstID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Adresse VARCHAR(255),
+    PLZ VARCHAR(10),
+    Stadt VARCHAR(100),
+    Koordinaten VARCHAR(50)
+);
+
+CREATE TABLE Person (
+    PID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Adresse VARCHAR(255),
+    PLZ VARCHAR(10),
+    Stadt VARCHAR(100),
+    InstitutionID INT,
+    Rolle ENUM('Autor', 'Herausgeber'),
+    FOREIGN KEY (InstitutionID) REFERENCES Institution(InstID)
+);
+
+herausgebe ()
+
+autor ()
+
+
+CREATE TABLE Lehreinheit (
+    LEID INT PRIMARY KEY,
+    Titel VARCHAR(255) NOT NULL,
+    HerausgeberID INT NOT NULL,
+    FOREIGN KEY (HerausgeberID) REFERENCES Person(PID)
+);
+
+CREATE TABLE Kurseinheit (
+    KEID INT PRIMARY KEY,
+    Titel VARCHAR(255) NOT NULL,
+    LEID INT NOT NULL,
+    Typ ENUM('Theorie', 'Praktikum'),
+    FOREIGN KEY (LEID) REFERENCES Lehreinheit(LEID)
+);
+
+CREATE TABLE Lehrheft (
+    LHID INT PRIMARY KEY,
+    Titel VARCHAR(255) NOT NULL,
+    KEID INT NOT NULL,
+    AutorID INT NOT NULL,
+    FOREIGN KEY (KEID) REFERENCES Kurseinheit(KEID),
+    FOREIGN KEY (AutorID) REFERENCES Person(PID)
+);
+
+CREATE TABLE Abschnitt (
+    AID INT PRIMARY KEY,
+    Titel VARCHAR(255) NOT NULL,
+    Text TEXT NOT NULL,
+    LHID INT NOT NULL,
+    ParentAID INT,
+    FOREIGN KEY (LHID) REFERENCES Lehrheft(LHID),
+    FOREIGN KEY (ParentAID) REFERENCES Abschnitt(AID)
+);
+
+```
+
+
 9.4 Herausgeber und Autor sind Personen. Konsequenterweise sollte hier eine Generalisierung verwendet werden. Stellen Sie die Generalisierung mit den Mitteln des EERM dar und begründen Sie kurz, für welche Art von Generalisierungshierarchie Sie sich entscheiden. (6 Punkte)
 
 
+**Begründung:**
+- **Herausgeber und Autoren sind Spezialisierungen der Entität "Person".**
+- **Gemeinsame Attribute** (Name, Adresse, Institution) werden in `Person` gespeichert.
+- **Die Generalisierung ist eine vollständige und überlappende Hierarchie,** weil eine Person gleichzeitig Herausgeber & Autor sein kann.
+
+**EERM-Darstellung:**
+
+- `Person` (Generalisiert) → `{Herausgeber, Autor}` (Spezialisierungen).
+- Generalisierungstyp: **Erweitert (overlapping)**
 
 
+?? 

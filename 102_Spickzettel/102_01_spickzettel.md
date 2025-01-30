@@ -58,7 +58,7 @@ anwenderseitiges oder externes Schema 
 adressorientiertes Schema
 konzeptuelles Schema 
 logistisches Schema
-physisches oder internes Schema
+physisches oder internes Schema ja
 
 Die richtigen Antworten sind:
 anwenderseitiges oder externes Schema,
@@ -152,8 +152,6 @@ Entitytypen werden als Rechtecke dargestellt.
 Die richtigen Antworten sind: 
 Entitytypen werden als Rechtecke dargestellt., 
 Relationshiptypen werden als Kanten mit Rauten dargestellt
-
----
 
 
 # 2 Transformation_des_ERM_zu_RDM
@@ -304,7 +302,7 @@ First Normal Form
 
 Second Normal Form
 - 第二范式是建立在第一范式基础上的，另外要求所有非主键字段完全依赖主键，不能产生部分依赖
-- Eine Relation ist in 2NF, wenn sie in 1NF ist und jedes Nicht-Schlüssel-Attribut **voll funktional abhängig** vom gesamten Primärschlüssel ist (d.h. keine Teilabhängigkeiten).
+    - Eine Relation ist in 2NF, wenn sie in 1NF ist und jedes Nicht-Schlüssel-Attribut **voll funktional abhängig** vom gesamten Primärschlüssel ist (d.h. keine Teilabhängigkeiten).d
 - Relation erfüllt die Regeln der 1NF und alle Nichtschlüsselattribute (NSA) sind vom gesamten Primärschlüssel voll funktional abhängig
 
 Third Normal Form
@@ -360,6 +358,7 @@ Join
 Ein **Theta-Join** (R⋈θSR ) ist eine spezielle Form des Joins, bei dem die Verknüpfung von zwei Relationen R und S auf der Basis einer Bedingung θ erfolgt. ==Wenn θ leer ist (d. h., es gibt keine Bedingung für den Join), reduziert sich der Theta-Join zum **kartesischen Produkt** (R×S).==
 
 ![](image/Pasted%20image%2020241221214339.png)
+
 ## 4.3 Natural Join
 
 ```
@@ -480,6 +479,7 @@ End;
 ```
 1 
 TriggerEreignis: insert or update or delete 
+
 2 
 referencing old as oldrow  new as newrow
 
@@ -517,11 +517,6 @@ BEGIN
 END;
 ```
 
-```
-
-
-
-```
 
 ## 8.2 alter trigger
 
