@@ -15,7 +15,7 @@ Port: 5432
 `C:\Program Files\PostgreSQL\17\bin\psql.exe`
 `C:\Program Files\PostgreSQL\17\data\pg_hba.conf`
 
-## 1.1 修改密码 
+# 2 修改密码 
 
 方法1
 
@@ -55,3 +55,21 @@ If you don’t remember the password, you need to reset it:
     - Then type `exit` to quit.
 - **Step 4: Restart PostgreSQL Service**
     - `net start postgresql`
+
+# 3 查看连接数 
+
+获取当前实例的总的连接数
+```
+select count(1) from pg_stat_activity ;
+```
+
+
+获取当前实例的空闲连接数
+```
+select count(1) from pg_stat_activity where state = 'idle';
+
+show max_connections;
+select name, setting, context, source from pg_settings where name = 'max_connections';
+
+select * from pg_file_settings where error is not null;
+```
