@@ -26,6 +26,21 @@ from isda_streaming.synopsis import BloomFilter, CountMinSketch, ReservoirSample
 
 # 2 Windowing
 
+## 2.1 理论 
+
+- Landmark Windows: Alle Windows haben einen gemeinsamen Startpunkt, jedoch wird das Window Ende späterer Windows linear um den übergebenen Dauer Parameter länger.
+    - **Landmark Window** 是一种**固定起点的窗口机制**，窗口的起始时间是固定的（landmark），而结束时间是动态或人为触发的。它会**收集从 landmark 到当前时间的所有数据**。
+    - ✅ **窗口大小会增长**（直到人为或系统触发重新设置）
+    - ✅ 用于 **从某一事件或时间点开始，持续观测到某一时刻** 的应用
+- Tumbling Windows: Erneut wird eine Dauer als Parameter übergeben. Dieses Mal ist dies die gesamte Länge des Windows, wobei das Ende eines Windows der Beginn des nächsten ist. Windows überlappen sich hier also nie.
+    
+- Sliding Windows: Beim Sliding Window gibt es zwei Parameter: die Dauer und den Slide Faktor, welcher angibt, um wie viel sich ein Window Anfang bzw. Ende verschiebt. Wenn der Slide der Dauer entspricht, so entspricht das Sliding Window dem Tumbling Window.
+
+
+![](image/Pasted%20image%2020250629191738.png)
+
+
+## 2.2 例子 
 
 In den folgenden Beispielen wollen wir uns mit Windowing beschäftigen. Als Windowing bezeichnen wir den Prozess der Diskretisierung eines Datenstroms mit Fenstern. Aber wieso benötigen wir dies überhaupt?
 
@@ -42,13 +57,7 @@ DataStream([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
 
 Nun wollen wir den Stream in einzelne Windows unterteilen. Es gibt viele unterschiedliche Windowarten, aber in der Vorlesung haben Sie die folgenden kennengelernt:
 
-- Landmark Windows: Alle Windows haben einen gemeinsamen Startpunkt, jedoch wird das Window Ende späterer Windows linear um den übergebenen Dauer Parameter länger.
-    - **Landmark Window** 是一种**固定起点的窗口机制**，窗口的起始时间是固定的（landmark），而结束时间是动态或人为触发的。它会**收集从 landmark 到当前时间的所有数据**。
-    - ✅ **窗口大小会增长**（直到人为或系统触发重新设置）
-    - ✅ 用于 **从某一事件或时间点开始，持续观测到某一时刻** 的应用
-- Tumbling Windows: Erneut wird eine Dauer als Parameter übergeben. Dieses Mal ist dies die gesamte Länge des Windows, wobei das Ende eines Windows der Beginn des nächsten ist. Windows überlappen sich hier also nie.
-    
-- Sliding Windows: Beim Sliding Window gibt es zwei Parameter: die Dauer und den Slide Faktor, welcher angibt, um wie viel sich ein Window Anfang bzw. Ende verschiebt. Wenn der Slide der Dauer entspricht, so entspricht das Sliding Window dem Tumbling Window.
+
 
 In der unten stehenden Codezelle können Sie das Verhalten genauer analysieren.
 
@@ -353,6 +362,11 @@ return minCount
 
 
 
+---
+
+例子 
+
+![](image/Pasted%20image%2020250629191838.png)
 
 
 ---
@@ -537,6 +551,30 @@ Bloom Filter 的假阳性率与以下参数有关：
 ![](image/Pasted%20image%2020250625223305.png)
 
 ---
+
+|优点|说明|
+|---|---|
+|✅ 空间效率极高|不存储元素本身|
+|✅ 插入 & 查询速度极快|都是 O(k) 操作|
+|✅ 可用于大规模数据集|很适合流式数据、分布式系统|
+
+| 缺点                       | 说明               |
+| ------------------------ | ---------------- |
+| ❌ 可能有假阳性（false positive） | 查询结果不是 100% 准确   |
+| ❌ 不支持删除（普通版）             | 删除元素可能会误删其他元素的数据 |
+| ❌ 无法获取元素原始内容             | 仅判断是否“可能存在”      |
+
+
+|变种|特点|
+|---|---|
+|Counting Bloom Filter|用计数数组代替 bit，可以支持删除|
+|Scalable Bloom Filter|动态扩容，适应元素数量变化|
+|Compressed Bloom Filter|减少网络传输成本|
+
+
+---
+
+
 例子
 
 假设：
@@ -558,26 +596,9 @@ bit array: [0, 1, 1, 0, 1, 0, 1, 0, 0, 0]
 如果你现在查询 grape，它可能刚好也被映射到这些为 1 的位上，那么你会得到一个 false positive。
 
 
----
-
-|优点|说明|
-|---|---|
-|✅ 空间效率极高|不存储元素本身|
-|✅ 插入 & 查询速度极快|都是 O(k) 操作|
-|✅ 可用于大规模数据集|很适合流式数据、分布式系统|
-
-| 缺点                       | 说明               |
-| ------------------------ | ---------------- |
-| ❌ 可能有假阳性（false positive） | 查询结果不是 100% 准确   |
-| ❌ 不支持删除（普通版）             | 删除元素可能会误删其他元素的数据 |
-| ❌ 无法获取元素原始内容             | 仅判断是否“可能存在”      |
+![](image/Pasted%20image%2020250629191908.png)
 
 
-|变种|特点|
-|---|---|
-|Counting Bloom Filter|用计数数组代替 bit，可以支持删除|
-|Scalable Bloom Filter|动态扩容，适应元素数量变化|
-|Compressed Bloom Filter|减少网络传输成本|
 
 
 
@@ -774,6 +795,12 @@ P(元素 j 被保留)=1⋅(1−1j+1)⋅(1−1j+2)⋯(1−1n)
 |❌ 不支持加权采样|所有元素被采样概率一样|
 |❌ 只能保留样本，不能估计频率|不是用于频率估计的结构（如 Count-Min Sketch）|
 
+
+---
+
+例子
+
+![](image/Pasted%20image%2020250629191938.png)
 
 
 ---
