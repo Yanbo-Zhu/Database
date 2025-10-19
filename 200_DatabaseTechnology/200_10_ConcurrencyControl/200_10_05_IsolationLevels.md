@@ -16,6 +16,11 @@ P2: Non-repeatable (fuzzy) read: T1 reads a data item. T2 modifies or deletes th
 
 P3: Phantom: T1 searches using a < X < b. T2 creates some items that fall in the range (or updates items in the range so they do not qualify anymore). T1 repeats its search, and  discovers a different set of items.
 
+| 现象                                               | 中文解释                                      | SERIALIZABLE 是否允许？ |
+| ------------------------------------------------ | ----------------------------------------- | ------------------ |
+| **Dirty Read（脏读）**                               | 读取了其他事务还没提交的数据。                           | ❌ 不允许              |
+| **Fuzzy Read/ Non-repeatable Read（不可重复读 / 模糊读）** | 同一事务中两次读到的同一行数据不一样（因为别的事务修改了它）。           | ❌ 不允许              |
+| **Phantom（幻读）**                                  | 同一事务中按条件查询的结果集的行数不同（因为别的事务插入/删除了符合条件的新行）。 | ❌ 不允许              |
 # 3 Isolation Levels
 
 • READ UNCOMMITTED: Transactions can read data that has been written by not-yet-committed transactions.
@@ -28,6 +33,27 @@ P3: Phantom: T1 searches using a < X < b. T2 creates some items that fall in the
     • Allows phantoms
 • SERIALIZABLE: Reads by predicate search are repeatable.
     • Does not allow dirty reads, fuzzy reads, phantoms
+
+
+
+## 3.1 SERIALIZABLE
+
+意思是：
+
+> 在 SERIALIZABLE 隔离级别下，  
+> 按条件（谓词）搜索得到的记录（比如 `SELECT * FROM users WHERE age > 30`）  
+> 在同一个事务内再次执行时，**结果是可重复的**。
+
+也就是说：
+
+- 如果你在一个事务中查了所有 age > 30 的用户，
+    
+- 另一个事务不能在你提交前插入一个新用户 `age = 35`，
+    
+- 否则会影响你的查询结果。
+    
+
+所以 **谓词搜索 (predicate search)** 的结果在同一事务内不会变化。
 
 
 # 4 Why do we need different Isolation Levels? Why not using the highest level if it is the safest?

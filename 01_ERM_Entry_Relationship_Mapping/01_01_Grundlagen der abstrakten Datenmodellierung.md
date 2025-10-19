@@ -109,14 +109,49 @@ Attribute werden als Ovale mit einer Linie mit dem entsprechenden Rechteck verbu
 ![](image/Pasted%20image%2020241119090429.png)
 
 
-## 3.3 Darstellung von Beziehungstypen
+## 3.3 普通实体（Strong Entity）
+
+- 用一个**单独的矩形（方框）**表示
+    
+- 它有自己的主键（Primary Key），能独立存在。
+    
+- 例：
+```
+┌────────────┐
+│  Student   │
+└────────────┘
+
+```
+
+### 3.3.1 弱实体（Weak Entity）
+
+- 用**双层矩形（两个方框套在一起）**表示
+- 它**不能独立存在**，必须依赖另一个实体（称为**强实体**）。
+- 弱实体**没有完整的主键**，只能通过与强实体的关系来唯一标识。
+- 通常还会有一个**双菱形（表示识别关系，identifying relationship）**连接到它所依赖的强实体。
+- 例子：
+
+```
+┌───────────────────┐
+│     Department    │ ← 强实体
+└───────────────────┘
+         │
+   Identifies
+         │
+╔═══════════════════╗
+║     Employee      ║ ← 弱实体（双框）
+╚═══════════════════╝
+
+```
+
+## 3.4 Darstellung von Beziehungstypen
 Beziehungen zwischen zwei Entitätentypen werden über eine Linie zwischen diesen Entitäten symbolisiert
 Die Linie wird von einer Raute dekoriert in die optional eine klassifizierende Bezeichnung für den Beziehungstyp eingetragen werden kann
 
 ![](image/Pasted%20image%2020241119090502.png)
 
 
-## 3.4 Darstellung von attributierten Beziehungstypen
+## 3.5 Darstellung von attributierten Beziehungstypen
 Weist ein Beziehungstyp zusätzliche Eigenschaften (als nur das Herstellen der Beziehung) auf, so können diese durch Attribute notiert werden
 Attribute werden (auch hier) als Ovale mit einer Linie mit der entsprechenden Raute verbunden
 
@@ -124,13 +159,13 @@ Attribute werden (auch hier) als Ovale mit einer Linie mit der entsprechenden Ra
 
 
 
-## 3.5 Darstellung von Kardinalitäten
+## 3.6 Darstellung von Kardinalitäten
 
 ![](image/Pasted%20image%2020250129233410.png)
 
 ![](image/Pasted%20image%2020241117204252.png)
 
-### 3.5.1 (1,M,N) Notation
+### 3.6.1 (1,M,N) Notation
 
 Die mögliche Anzahl der mit einer Entität in Beziehung stehenden Entitäten kann mit einer Maximalanzahl ausgedrückt werden. z.B. (Zu einem Lieferanten kann eine Adresse hinterlegt sein
 
@@ -146,7 +181,7 @@ Dabei wird die Anzahl immer an das Ende der Assoziationslinie notiert
 
 
 
-### 3.5.2 (Min, Max) Notation
+### 3.6.2 (Min, Max) Notation
 
 Die mögliche Anzahl der an einer Beziehung beteiligten Entitäten kann mit einer Minimal- und einer Maximalanzahl ausgedrückt werden.
 z.B. (Zu einem Lieferanten kann keine oder genau eine Adresse hinterlegt sein  (0,1)
@@ -185,7 +220,7 @@ Ein addresse  kann N Lieferenten  und muss nicht Lieferent zugeordnet sein
 Z.B eine Addressebuch, wenn wir eben hier auch Adressen haben, die momentan keine Zuordnungen haben . 
 Die Adressen die wir für andere Zweck gebrauchen, weil wir vielleicht noch Kunden in unserer Datenbank haben oder andere Geschäftspartner. Solche Address muss nicht Lieferent zugeordnet werden 
 
-## 3.6 Existenzabhängigkeiten
+## 3.7 Existenzabhängigkeiten
 
 Existenzabhängigkeit und Optionalität 
 
@@ -205,7 +240,7 @@ Existenzabhangigkeit:  删除了一个Objekt, 和他有Existenzabhangigkeit 的O
 
 
 
-## 3.7 Arten von Beziehungstypen
+## 3.8 Arten von Beziehungstypen
 
 Nach der Anzahl der beteiligten Entitätentypen (auch Grad der Beziehung) werden unterschieden:
 - Binäre Beziehungstypen (2 Entitätentypen)
@@ -218,12 +253,12 @@ Nach der Anzahl der beteiligten Entitätentypen (auch Grad der Beziehung) werden
     - An einem n-ären Beziehungstyp nehmen n Entitätentypen teil.
 
 
-## 3.8 rekursiver Beziehungstyp
+## 3.9 rekursiver Beziehungstyp
 ![](image/Pasted%20image%2020250127172645.png)
 
 
 
-## 3.9 n-ärer Beziehungstyp
+## 3.10 n-ärer Beziehungstyp
 Beispiel: Artikel werden für Projekte in einer bestimmten Menge benötigt und können von Lieferanten geliefert werden:
 - Ein Lieferant muss mindestens einen Artikel liefern: `(1, *)`.
 - Ein Artikel muß nicht für ein Projekt geliefert werden (Eigenproduktion), kann aber für viele Projekte geliefert werden: `(0, *)`.
