@@ -85,6 +85,8 @@ More complex for more than two possible fragments
 
 ### 1.4.1 Pointer Swizzling
 
+...map block references from the database address space to the virtual memory space
+
 就是用 pointer in Memory 取代 id_nummer in disk when load data form disk the momery 
 
 "In computer science, pointer swizzling is the conversion of references based on name or position to direct pointer references. It is typically performed during the deserialization (loading) of a relocatable
@@ -142,14 +144,30 @@ It can handle both OLAP and OLTP workloads
 It requires twice storage space
 Maintain both replicas up-to-date
 
+The data is stored twice, once in row layout (NSM) and once in column layout (DSM) format to adaptively pick the suitable layout depending on the workload.
+
 ![[Pasted image 20251109103718.png]]
 
 
 ### 2.2.2 Vertical Partitioning
+The data is stored once, but some attributes are stored in row layout (NSM) and some in column layout (DSM).
+
+Vertical partitioning aims at reducing the I/O cost for every single incoming query.: Falsch 
+
+
+Vertical partitioning (vertikale Partitionierung) bedeutet,
+dass eine Tabelle in Spalten bzw. Spaltengruppen aufgeteilt wird
+— also ähnlich wie in einem Column Store.
+
+➡️ Ziel ist nicht, die I/O-Kosten für jede einzelne Anfrage zu reduzieren,
+sondern für bestimmte Arten von Abfragen (typisch: analytische Queries, die nur wenige Spalten benötigen).
+
+
 
 ![[Pasted image 20251109103956.png]]
 
 ### 2.2.3 PAX Layout: Partioning Across Attributes
+
 
 
 DSM inside an NSM page

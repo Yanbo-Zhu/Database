@@ -95,20 +95,21 @@ First In First Out
 • Easy to implement; low overhead
 • Does not consider access recency or frequency
 
+
+
 Least Recently Used
 • Considers access recency (which is intuitive)
 • Requires maintenance of the access recency order (i.e., for every access)
-
-
-Least Recently Used
 • Good for temporal locality
 • Poor for large sequential scans (cache pollution)
 Good if you access data in a burst and then forget it like in this query plans
 
 Most Recently Used
-• Good for sequential and repeating patterns (e.g., table scans)
-• Poor for hot-spot reuse
-Good if parts are often accessed over and over again like the root of a tree
+- Good for sequential and repeating patterns , like table scans
+- poor for hot-spot reuse
+
+Least Frequently Used
+-Good if parts are often accessed over and over again like the root of a tree
 
 ![[Pasted image 20251109121437.png]]
 
