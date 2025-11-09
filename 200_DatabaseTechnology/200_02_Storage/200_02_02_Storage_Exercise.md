@@ -19,6 +19,16 @@ Principal locality is the tendency of a processor to access the same set of memo
 Spatial locality 
 Temporal locality 
 
+- **Spatial locality（空间局部性）**：  
+    当程序访问某个内存地址时，它**很可能会访问与该地址相邻的地址**。  
+    换句话说，数据在空间上彼此接近时，更有可能被连续访问。  
+    👉 例子：遍历数组时，访问 `A[i]` 后很快会访问 `A[i+1]`。
+    
+- **Temporal locality（时间局部性）**：  
+    当程序访问某个数据时，它**在不久的将来很可能会再次访问同一个数据**。  
+    👉 例子：循环中多次使用同一个变量或缓存的数据。
+
+
 ---
 
 

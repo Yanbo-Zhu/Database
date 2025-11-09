@@ -22,6 +22,8 @@ DBMS Buffer Cache:
 - It brings data from permanent storage to main memory
 - DBMS controlled
 
+
+Locality 
 ![[Pasted image 20251108231306.png]]
 
 ![[Pasted image 20251108230631.png]]
