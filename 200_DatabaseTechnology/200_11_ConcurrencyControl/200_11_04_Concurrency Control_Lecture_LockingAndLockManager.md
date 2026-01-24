@@ -8,7 +8,7 @@ Enforcing Serializability
     • We need to know the schedule in advance
     • What about interactive systems?
 • Instead a scheduler ensures serializability by delaying operations or aborting transactions
-• Pessimistic concurrency control – Locking
+• ==Pessimistic concurrency control – Locking==
 • Optimistic concurrency control – Timestamps
 
 ![](image/Pasted%20image%2020250118203354.png)
@@ -122,9 +122,9 @@ Locking and Serializability
 ## 2.4 Lock Compatibility
 
 • Multiple TX can hold the locks on the same element
-• Read locks are compatible with other read locks
+• ==Read locks are compatible with other read locks==
     • Multiple TX can have a read lock on same element
-• Write locks are not compatible with other locks
+• ==Write locks are not compatible with other locks==
     • A read lock and write lock cannot exist on the same element at the same time
 • NOTE: If a transaction requests a lock that cannot be granted, the operations is delayed (or the transaction is aborted)
 
@@ -145,11 +145,13 @@ Locking and Serializability
 
 ![](image/Pasted%20image%2020250118204359.png)
 
+![](image/Pasted%20image%2020260124012416.png)
 
 ![](image/Pasted%20image%2020250118204419.png)
 
 
 ### 2.5.1 Delayed Operations by 2PL
+
 • T1: R1(A), W1(A), R1(B), W1(B)
 • T2: R2(A), W2(A), R2(B), W2(B)
 • Order of requested operations: R1(A), W1(A), R2(A), W2(A), R2(B), W2(B), R1(B), W1(B)
@@ -169,6 +171,75 @@ Deadlocks are still possible
 
 ![](image/Pasted%20image%2020250118204618.png)
 
+
+
+Execution of these transactions can result in deadlock. For example, consider the following partial schedule:
+
+```
+
+T1: BEGIN                   T2:
+    S-LOCK(A)
+                                BEGIN
+                                S-LOCK(B)
+                                R(B)
+    R(A)
+    X-LOCK(B)
+                                X-LOCK(A)
+```
+
+![](image/Pasted%20image%2020260124095644.png)
+
+**步骤分析：**
+
+1. **T1 先开始**：
+    
+    - `S-LOCK(A)` → T1 获得 A 的**共享锁**。
+        
+    - `R(A)` → 读取 A（可以执行，因为有 S 锁）。
+        
+2. **T2 同时或交错运行**：
+    
+    - `S-LOCK(B)` → T2 获得 B 的**共享锁**。
+        
+    - `R(B)` → 读取 B。
+        
+3. **接下来**：
+    
+    - T1 执行 `X-LOCK(B)` → 申请 B 的**排他锁**。  
+        但此时 T2 持有 B 的共享锁，不兼容 → **T1 等待 T2 释放 B 的锁**。
+        
+4. **T2 继续**：
+    
+    - 执行 `X-LOCK(A)` → 申请 A 的**排他锁**。  
+        但此时 T1 持有 A 的共享锁，不兼容 → **T2 等待 T1 释放 A 的锁**。
+
+**此时形成环路等待**：
+
+- T1 等待 T2 释放 B 的锁。
+    
+- T2 等待 T1 释放 A 的锁。
+    
+
+两个事务互相等待对方持有的资源，都无法继续执行，这就是**死锁**。
+
+**死锁条件满足**：
+
+1. **互斥**：锁是互斥资源。
+    
+2. **持有并等待**：T1 持有 A 锁等 B 锁，T2 持有 B 锁等 A 锁。
+    
+3. **不可剥夺**：锁不能强行剥夺。
+    
+4. **循环等待**：T1 → B（被 T2 持有） → T2 → A（被 T1 持有） → T1。
+    
+
+---
+
+**避免方法**：
+
+- 让事务按相同顺序申请锁（例如都先申请 A 锁，再申请 B 锁）。
+    
+- 使用超时机制或死锁检测来解除死锁。
 
 ---
 
@@ -228,7 +299,7 @@ Cascading Abort:
 different times.
 • Example:
 • TX 1: Every month we can distribute a total of 10,000 € to the employees of department X
-    • Q1: T := SELECT COUNT(*) FROM Emp WHERE Dept = ‘X’
+    • `Q1: T := SELECT COUNT(*) FROM Emp WHERE Dept = ‘X’`
     • Q2: UPDATE Emp SET Salary = Salary + 10000 / T
 • TX 2: Jane Doe starts working in department X
     • Q3: UPDATE Emp SET Dept = ‘X’ WHERE Name = ‘Jane Doe’
@@ -238,7 +309,101 @@ different times.
     • We can only lock existing items
 
 
+- **发生情况**：在同一事务中，相同的查询在不同时间点返回不同的结果集。
+    
+- **示例**：
+    
+    **事务 TX1**：每月我们可以向 X 部门员工发放总额 10,000 €
+    
+    - `Q1：T := SELECT COUNT(*) FROM Emp WHERE Dept = 'X'`
+        
+    - Q2：`UPDATE Emp SET Salary = Salary + 10000 / T`
+        
+    
+    **事务 TX2**：Jane Doe 开始在 X 部门工作
+    
+    - Q3：`UPDATE Emp SET Dept = 'X' WHERE Name = 'Jane Doe'`
+        
+- **如果 Q3 在 Q1 和 Q2 之间执行**，会导致**发放的总金额过多**：
+    
+    - TX1 需要对整个表加写锁
+        
+    - 但 TX2 只需要对单个元组加写锁
+        
+    - **我们只能对已存在的记录加锁**（无法锁住将来可能插入的、满足条件的记录）
+        
+
+---
+
+**核心原因**：  
+TX1 在 Q1 时统计到 N 个员工，但在 Q2 更新前，TX2 插入/更新了一个新记录，使得实际满足条件的员工变为 N+1 个，导致 10000/(N+1) 被算成 10000/N，多发钱。  
+**本质**：**范围查询**无法通过行级锁防止新记录的插入，从而引发数据一致性问题。
+
+
+
+
 ## 2.8 Intention Locks Compatibility Matrix
+
+Concept: Intention Locks
+
+‣ Lock database elements organized in a hierarchy to cope with different granularities, e.g., blocks, relations, tuples, etc.
+
+‣ Intention locks allow a higher-level node to be locked in shared mode or exclusive mode without having to check all descendant nodes.
+
+‣ If a node is in an intention mode, then explicit locking is being done at a lower level in the tree.
+
+‣ Hierarchical locks are useful in practice, as each TX only needs a few locks.
+
+‣ Intention locks help improve concurrency:
+
+
+![](image/Pasted%20image%2020260124014909.png)
+
+**意向锁（Intention Locks）概念**
+
+**‣ 背景**：  
+数据库元素（如表、块、行等）以层次结构组织，支持不同粒度的锁定。
+
+**‣ 作用**：  
+意向锁允许在较高层级节点上加共享锁或排他锁，而无需检查其所有后代节点的锁定状态。
+
+**‣ 原理**：  
+如果一个节点处于“意向模式”，说明该节点的**较低层级正在被显式加锁**。
+
+**‣ 实际价值**：  
+层次化锁很实用，因为每个事务通常只需少量锁。
+
+**‣ 优势**：  
+意向锁通过**减少锁检查开销**和**允许更细粒度的并发控制**，显著提升并发性能。
+
+
+----
+
+
+Intention-Shared (IS): Indicates explicit locking at a lower level with shared locks. Intention-Exclusive (IX): Indicates explicit locking at a lower level with exclusive or shared locks
+
+1. To place S or X lock on any element, we must begin at the root
+    
+2. If we are at the element we want to lock, we request an S or X lock
+    
+3. Otherwise, if the element is below in the hierarchy, we request an IS or IX intention lock on the current element
+
+**加锁规则（自顶向下）**
+
+1. **从根节点开始**：  
+    要对任何元素加 S 锁或 X 锁，必须从层次结构的根节点开始。
+    
+2. **到达目标元素**：  
+    如果当前节点就是要加锁的元素，则直接请求 **S 锁** 或 **X 锁**。
+    
+3. **在路径中间节点**：  
+    如果目标元素在当前节点的**下层**，则对当前节点请求 **IS 锁** 或 **IX 锁**（意向锁）。
+
+
+
+----
+Example 
+
 
 • Intention locks IS and IX are compatible with each other
     • Allow conflict to be resolved at lower level
@@ -270,6 +435,26 @@ different times.
     • Resource to lock
 
 
+**• 位置与作用**：  
+锁管理器是数据库管理系统内部的**内存数据结构**，负责：
+- 授予或阻塞锁请求
+- 处理死锁
+- 管理被阻塞事务的等待队列
+
+**• 事务接口**：  
+向事务提供两个主要操作：
+- `acquireLock(T, X, mode)`：事务 T 请求对资源 X 加指定模式的锁
+- `releaseLock(T, X, mode)`：事务 T 释放对资源 X 的锁
+
+**• 核心结构**：  
+锁管理器维护一张**逻辑锁表**，每个表项是一个**逻辑锁数据结构**，包含：
+1. **锁模式**（S, X, IS, IX, …）
+2. **锁请求链表**（已授予或等待中的请求）
+3. **闩锁（latch）**：保护该数据结构本身的**物理锁**（防止并发修改）
+4. **被锁定的资源标识**
+
+
+
 ## 3.1 Locks and Latches
 lock: logical things
 latches: the implementation of logical things the reale Opearation 
@@ -292,6 +477,67 @@ latches: the implementation of logical things the reale Opearation
 • Latch the lock and append request to queue
     • Transaction may block if request incompatible with current lock mode
 
+**• 事务尝试获取锁**  
+当事务请求对某个资源加锁时，遵循以下步骤：
+
+**1. 遵循层次化锁协议**  
+确保事务在高层级节点上持有相应的**意向锁**：
+
+- 资源层次结构是固定的，并硬编码在数据结构中（例如：一行数据知道它所属的页ID `pageId`）
+    
+- 如果需要，**递归地发出高层级的锁请求**（自顶向下）
+    
+- 如果事务已经持有**更粗粒度的锁**，则立即授予当前请求  
+    例如：已持有表级 X 锁时，请求该表某行的 X 锁直接成功
+    
+- 否则，通过**哈希表**查找对应的锁对象
+    
+
+**2. 闩锁保护与队列管理**
+
+- **闩住（latch）** 该逻辑锁结构，防止并发修改
+    
+- 将锁请求**追加到队列**中
+    
+- 如果请求的锁模式与当前已授予的锁**不兼容**，事务将**进入阻塞状态**
+
+
+### 3.2.1 **流程举例**
+
+事务 T1 请求对行 R1 加 X 锁：
+
+1. 根据层次结构（数据库 → 表 → 页 → 行），递归请求：
+    
+    - 对数据库加 IX 锁
+        
+    - 对表加 IX 锁
+        
+    - 对页加 IX 锁
+        
+2. 检查是否已持有表级 X 锁？否 → 继续
+    
+3. 通过哈希表找到行 R1 的锁结构
+    
+4. 闩住该锁结构，检查兼容性：
+    
+    - 若无冲突 → 授予锁，加入 granted 链表
+        
+    - 若冲突（如已有其他事务的 S 锁） → 加入 waiting 链表，T1 阻塞
+        
+
+---
+
+### 3.2.2 **关键设计点**
+
+- **递归请求**：自动确保意向锁的完整性
+    
+- **哈希加速**：快速定位锁对象
+    
+- **队列化**：公平处理等待事务
+    
+- **阻塞机制**：不兼容时事务挂起，避免忙等待
+
+
 ## 3.3 Releasing Locks
 
 • Transactions maintain pointers to held logical locks in request order
@@ -302,6 +548,24 @@ latches: the implementation of logical things the reale Opearation
     • Traverse request list to discover new lock mode and pending requests that may now be granted
     • Unlatch lock
     • Blocked transactions are notified and can proceed
+
+**• 事务如何管理持有的锁**  
+事务按照**请求顺序**维护指向所持有逻辑锁的指针。  
+在事务结束时，锁按**相同顺序**逐个释放。
+
+---
+
+**• 释放锁的步骤**
+1. **闩住锁并移除对应请求**
+    - 闩住（latch）该逻辑锁结构
+    - 从请求队列中**解除链接（unlink）** 对应的锁请求        
+2. **更新锁状态并检查可授予的请求**
+    - 遍历请求链表，**重新计算当前有效的锁模式**
+    - 检查是否有因本次释放而**可被授予的等待请求**
+3. **释放闩锁并通知等待事务**
+    - 解锁（unlatch）逻辑锁结构        
+    - **通知被阻塞的事务**，它们现在可以继续执行
+
 
 
 ## 3.4 Lock Manager Performance
@@ -325,6 +589,80 @@ Lock manager is a “hot spot” for contention, especially for locks high in th
     • It takes 10ms to force the commit record to a hard disk (=1000x !!!)
     • Allow transactions to release their locks as soon as they receive allocated space in buffer pool for commit log record
 
+
+---
+
+
+这四种技术分别从不同角度优化锁机制：
+
+1. **锁继承** → 减少锁请求开销
+    
+2. **数据导向** → 改变执行模型避免锁竞争
+    
+3. **轻量锁结构** → 降低锁管理开销
+    
+4. **早期释放** → 缩短锁持有时间
+    
+
+共同目标是：**在高并发OLTP场景下，减少锁带来的性能瓶颈**。
+
+---
+
+
+**1. 推测性锁继承（Speculative Lock Inheritance）**
+
+- **原理**：在同一个线程中执行的后继事务，尝试继承前一个事务持有的高层级锁（如表级锁）。
+    
+- **目的**：避免重复的锁请求开销，提高线程内事务连续执行的效率。
+    
+- **应用场景**：线程池模型中，同一线程可能连续处理多个相似事务。
+    
+- **论文**：《Improving OLTP Scalability using Speculative Lock Inheritance》
+    
+
+---
+
+**2. 数据导向执行（Data-oriented Execution）**
+
+- **原理**：采用“**每个数据分区一个线程**”，而非传统的“每个事务一个线程”。
+    
+- **目的**：减少线程间锁竞争和上下文切换，提高数据局部性。
+    
+- **效果**：同一分区内的事务由同一线程串行执行，自然避免锁冲突。
+    
+- **论文**：《Data-Oriented Transaction Execution》
+    
+
+---
+
+**3. 轻量级意向锁（Lightweight Intent Lock）**
+
+- **原理**：每个事务维护**私有的锁表**，简化向全局锁表请求和释放锁的代码路径。
+    
+- **目的**：减少全局锁表的争用，提高多核环境下的并发性能。
+    
+- **现代硬件适配**：针对多核CPU缓存一致性优化，减少锁管理开销。
+    
+- **论文**：《Efficient Locking Techniques for Databases on Modern Hardware》
+    
+
+---
+
+ **4. 早期锁释放（Early Lock Release）**
+
+- **背景**：事务执行时间与提交时间严重不匹配：
+    
+    - 执行时间（数据在缓冲池）：约 **0.01 ms**
+        
+    - 强制提交记录到磁盘：约 **10 ms**（相差 **1000倍**）
+        
+- **原理**：事务在**为提交日志记录分配缓冲池空间后**立即释放锁，无需等待日志刷盘完成。
+    
+- **优势**：显著减少锁持有时间，提高并发吞吐量。
+    
+- **风险**：需确保事务提交的原子性和持久性不受影响（通过其他机制保证）。
+
+
 ## 3.6 Dealing with Deadlocks
 
 • Deadlock prevention:
@@ -336,7 +674,52 @@ Lock manager is a “hot spot” for contention, especially for locks high in th
     • Roll back transaction if waits-for graph contains cycle (rollback releases locks automatically)
     • High computational overhead: Check status of all transactions and probe lock queues
 
+**死锁预防（Deadlock Prevention）**
+
+- **超时机制**：如果事务等待时间过长，则中止该事务。
+    
+    - **缺点**：可能导致**误判**（假阳性）——事务可能只是等待较久而非死锁。
+        
+    - **难点**：如何设定合适的超时参数？设置太短会误杀，太长则死锁响应延迟。
+        
+
+ **死锁检测（Deadlock Detection）**
+
+- **等待图构建**：  
+    若事务 T₁ 因等待 T₂ 释放锁而被阻塞，则添加一条边 **T₁ → T₂**。
+    
+- **环检测**：  
+    图中存在**环**即表示死锁。
+    
+- **解决方式**：  
+    一旦检测到环，选择一个事务进行**回滚**（回滚会自动释放其持有的锁）。
+    
+- **开销问题**：  
+    需要检查所有事务状态并探测锁队列，**计算开销较高**。
+
+
 ![](image/Pasted%20image%2020250118205622.png)
+
+
+
+**典型检测算法**
+
+1. 定期构建**等待图（waits-for graph）**
+    
+2. 使用 DFS 或拓扑排序检测环
+    
+3. 选择“牺牲者”事务（通常基于：年龄最小、持有锁最少、已做工作最少等策略）
+    
+4. 回滚牺牲者事务并释放其资源
+    
+
+ **性能权衡**
+
+- **检测频率高**：死锁发现快，但系统开销大
+    
+- **检测频率低**：开销小，但死锁持续时间长
+    
+- **混合策略**：根据系统负载动态调整检测频率
 
 
 ## 3.7 practical 例子 
@@ -372,7 +755,8 @@ Error: Transaction T0 does not have a write lock on object A!
 Error: Transaction T1 does not have a lock on object B!
 Success: All locks have been released!
 
---
+---
+
 
 ```python
 # Copyright (c) 2020 Clemens Lutz, German Research Center for Artificial Intelligence

@@ -42,12 +42,17 @@ Challenges
 • Isolation: A transaction executes as if it is the only transaction running in the system — Concurrency control
 • Durability: The effects of committed transactions are reflected in the database even after failures — Recovery
 
-
+- **原子性（Atomicity）**：保证事务要么全做要么全不做，避免上面“只扣款不加款”的情况。
+- **一致性（Consistency）**： - **事务开始前**，数据库处于一个**一致性状态**（满足所有定义的规则）。- **事务结束后**，数据库必须进入**另一个一致性状态**。
+- **隔离性（Isolation）**：防止其他事务在中间状态读取数据（如读到总余额1300）。
+    
+- **持久性（Durability）**：事务提交后，一致性状态会持久保存。
 
 ![](image/Pasted%20image%2020250118195252.png)
 
 
 ### 1.1.1 Atomicity -- All or Nothing
+
 A transaction is executed completely or not at all. There are no partial results.
 - **Example**:  
     When transferring money from account A to account B, **both actions** (deducting from A and adding to B) must be completed fully, or neither should happen if an error occurs.
@@ -60,8 +65,6 @@ Can be dealt with by undoing the effects of failed transactions during recovery
 
 ### 1.1.2 Consistency - Integrity Constraints
 
-
-
 After a transaction is completed, the database must transition from one consistent state to another. Rules like integrity constraints must never be violated.
 - **Example**:  
     During a money transfer, the total balance across both accounts must remain the same before and after the transaction.
@@ -70,7 +73,14 @@ From a consistent state to a consistent state “Consistent” defined declarati
 
 ![](image/Pasted%20image%2020250118195623.png)
 
+有一个**完整性约束**：  
+**所有账户的总余额在转账前后必须保持不变**。这时数据库就处于不一致状态，而且这个不一致是**持久化**的。
 
+1. **数据库系统**：保证内置约束（主键、外键、非空等）不被违反。  
+    → 如果违反，DBMS会自动回滚事务。
+    
+2. **应用程序/开发者**：保证业务逻辑约束（如总金额不变）在事务中正确实现。  
+    → DBMS 不会自动检查这类约束，需要开发者通过代码确保。
 
 ### 1.1.3 **Isolation**
 
@@ -84,8 +94,6 @@ Multiple transactions running concurrently should not interfere with each other.
 
 
 ### 1.1.4 **Durability** - Recovery
-
-
 
 Transactions that reported that they finished must have their results durable.
 
