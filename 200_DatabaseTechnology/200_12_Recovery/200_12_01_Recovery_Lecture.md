@@ -77,6 +77,7 @@ System failure:
 ‣ **No-Force**：不要求（页可以延迟写入，但需要日志来保证持久性）
 
 ‣ Steal: changes can be moved into the disk as soon as the Tx starts
+- steal policy means that the database system **allows** a transaction to overwrite the most recent committed value of a database element on disk even though the transaction has not committed. 
 ‣ No-Steal: changes cannot be moved into the disk until Tx commits
 
 ‣ Force: changes should be moved into the disk no later than when Tx commits
@@ -364,6 +365,9 @@ The operations of loser transactions are undone in the database instance in reve
 撤销失败事务的操作  
 败者事务的操作按**逆序**在数据库实例中撤销
 
+- **重做阶段（Redo Pass）**：**向前（forward）** 扫描日志，从最后一个检查点开始，重做所有已提交和未提交的事务操作，将数据库恢复到崩溃前的状态。    
+- **撤销阶段（Undo Pass）**：**向后（backward）** 扫描日志，仅针对未提交事务（loser transactions）撤销它们的操作。
+
 
 ![](image/Pasted%20image%2020260124113528.png)
 
@@ -410,6 +414,14 @@ Redo Phase
 ‣ 页面包含 LSN 标记（最近更改该页面的 LSN）  
 ‣ 如果页面的 LSN **小于**日志条目的 LSN，则必须应用该操作
 
+
+The redo pass in recovery goes forward in the log from the maximum flushed log sequence number so far. -> falsch 
+
+在数据库恢复（如 ARIES 算法）中：
+- **重做阶段（Redo Pass）** 的起始点通常是**最后一个检查点（last checkpoint）** 或检查点记录中记录的 **RedoLSN**（即检查点时刻最旧的脏页对应的日志记录 LSN），而不是“当前最大的已刷新 LSN（flushedLSN）”。    
+- **flushedLSN** 是系统正常运行时跟踪的、已刷新到磁盘的最大 LSN，用于保证 WAL。但在崩溃恢复时，重做阶段必须从**可能需重做的最早操作**开始，这由检查点信息决定，不一定等于 flushedLSN。
+    
+因此，说“重做阶段从当前最大 flushedLSN 开始向前扫描”是不准确的。
 
 
 

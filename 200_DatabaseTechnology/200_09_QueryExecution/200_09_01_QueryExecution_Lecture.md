@@ -7,7 +7,7 @@ Basic Query execution
 
 
 ---
-
+The five base operators of the relational algebra are selection, projection, difference, union, and cartesian product. 
 
 ![](image/Pasted%20image%2020260120170124.png)
 •
@@ -27,6 +27,15 @@ Translation from Bags to Sets (de-duplication)
 •
 Unique/distinct D
 
+
+Difference: 
+- **集合差 difference （A − B）** 的定义是：
+    > 属于 A 但不属于 B 的元素
+- 用集合运算表示为：  
+    👉 **A − B = A ∩ ¬B**
+关键点在于：  
+➡️ **需要“补集（complement）”**
+
 ---
 
 Logical Physical Mapping 
@@ -43,6 +52,20 @@ Logical Physical Mapping
 ‣ Some operators have pipelinable and blocking sub-operators like joins:
     ‣ Blocking: Hash table build
     ‣ Pipelinable: Hash table probe
+
+- **Join（连接）**  
+    ✔️ **可以是 pipelining 的**（例如 nested-loop join、hash join 的 probe 阶段）
+    
+- **Grouping（分组 / GROUP BY）**  
+    ❌ **通常是 blocking 的**
+    
+    - 需要先看到所有相关元组，才能完成分组和聚合
+        
+- **Sort（排序）**  
+    ❌ **典型的 blocking operator**
+    
+    - 必须先读完全部输入才能输出第一个结果
+
 
 # 2 Processing Models
 
@@ -432,6 +455,14 @@ There is a single test system to compare compilation-based model (Typer) vs. a v
 ![](image/Pasted%20image%2020260121143840.png)
 
 
+Query compilation requires fewer CPU instructions and hides cache misses better than vectorized query processing.： wahr  
+- **Query compilation** 会把整个查询编译成紧凑的机器码，  
+    👉 减少函数调用、类型检查等**额外 CPU 指令**。
+    
+- 通过 **算子内联（operator fusion）**，形成长循环，  
+    👉 **更好地隐藏 cache miss**（流水线执行、指令级并行）。
+    
+- 相比之下，**vectorized query processing** 仍然存在算子边界和批处理调度开销。
 
 
 # 3 Parallel Execution

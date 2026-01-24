@@ -71,6 +71,7 @@ In parallel dynamic programming: Threads might skip work if a different thread h
 
 ---
 
+## 2.2 Amdahl’s Law
 
 The Speed Limits
 
@@ -89,10 +90,10 @@ Strong scaling is defined as how the solution time varies with the number of pro
 
 ![](image/Pasted%20image%2020260124123709.png)
 
+According to Amdahl's Law, in a best-case scenario, the theoretical speedup of a program is equal to the number of processors available.
+![](image/Pasted%20image%2020260124192921.png)
 
----
-
-Gustafson's Law
+## 2.3 Gustafson's Law
 
 ‣ Problem sizes tend to grow over time and with increasing available processing power
 
@@ -142,25 +143,25 @@ Gustafson's Law
 
 ---
 
+- **Shared-disk**：多个处理器通过共享磁盘连接（如某些集群或 SAN 系统），不适用于单个笔记本电脑。    
+- **Shared-nothing**：每个处理器拥有独立的内存和磁盘，通过网络通信（如分布式集群），不适用于多核笔记本。
 
-Shared Memory
+## 3.1 Shared Memory
 Several CPUs share a single memory space and (multiple) disks Communication over a single common bus
 Usually this is single node execution. (Exception new technology disaggregated memory)
 
 ![](image/Pasted%20image%2020260124125228.png)
 
----
 
-Shared Disk
+## 3.2 Shared Disk
+
 Several nodes with multiple CPUs, each node has its private memory Single attached disk (array): Often NAS, SAN, etc...  
 Sever share the same data „source“
 
 For example, cloud nodes with distributed file system like S3 for Amazon
 ![](image/Pasted%20image%2020260124125234.png)
 
----
-
-Shared Nothing
+## 3.3 Shared Nothing
 Each node has it own set of CPUs, memory and disks attached Data needs to be partitioned over the nodes  
 Data is exchanged through direct node-to-node communication
 
@@ -168,9 +169,7 @@ Data is exchanged through direct node-to-node communication
 
 
 
----
-
-## 3.1 Issues for Selecting the Architecture
+## 3.4 Issues for Selecting the Architecture
 
 ‣ Reliability
 ‣ Scalability
@@ -223,7 +222,7 @@ Task Parallelism:
 
 
 
-## 4.2 Modes of Query Parallelism
+## 4.2 Modes of Query Parallelism (Inter-Query and Intra-Query  Parallelism )
 
 
 
@@ -261,13 +260,25 @@ Intra-Query Parallelism (parallel processing of a single query)
 - **→ 适用场景**：对复杂分析任务（OLAP）非常重要。
 
 
-## 4.3 Pipeline Parallelism I
+## 4.3 Pipeline Parallelism (Inter-operator parallelism)
 
 ![](image/Pasted%20image%2020260124130043.png)
+
+**操作符间并行（Inter-operator Parallelism）** 是指查询计划中的**不同操作符**同时执行。常见的实现方式包括：
+
+1. **流水线并行（Pipeline Parallelism）**：一个操作符的输出直接作为下一个操作符的输入，两者同时运行。
+    
+    - 例如：`Scan → Filter → Join` 中，Scan 产生数据时 Filter 就开始处理，同时 Join 可能也在处理之前已通过 Filter 的数据。
+        
+2. **独立分支并行**：查询计划有多个独立分支时，可以同时执行。
+    
+
+因此，操作符间并行允许多个操作符并发运行，从而提升查询性能。
 
 
 - Pipeline Parallelism is also called Inter-Operator Parallelism:
     - Inter Operator because the parallelism is between the operators
+    - - Inter-operator parallelism allows multiple operators to run concurrently.
 - Execute multiple pipelines simultaneously:
     - Limited in its applicability, only if multiple pipelines are present and not totally dependent on each other
     - Enables task parallelism  
@@ -465,6 +476,10 @@ Hash Partitioned:
 Define a set of partitioning columns
 Generate a hash value over those columns to decide the target set  
 All tuples with equal values in the partitioning columns are in the same set
+
+- **轮循分区（Round Robin）**：确实保证每个分区获得大致相等数量的元组（严格相等，如果元组总数可被分区数整除）。
+- **哈希分区（Hash-based Partitioning）**：**不保证**每个分区的元组数量相等。  
+    哈希分区的分布取决于**哈希键的分布**。如果某些哈希值出现频率更高，对应分区就会包含更多元组，从而导致数据倾斜（data skew）。
 
 Range Paritioned 
 Define a set of partitioning columns

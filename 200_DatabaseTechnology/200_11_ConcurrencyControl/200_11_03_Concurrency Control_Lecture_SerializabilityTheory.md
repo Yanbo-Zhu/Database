@@ -86,6 +86,8 @@ Serial schedules with different results
 
 # 4 Serializability
 
+> Even serializable schedules may cause an inconsistent database state from an application's point of view if no integrity constraint is defined. - **可串行化（Serializable）** 只保证事务的并发执行**等价于某个串行顺序**，它确保数据库在事务结束时保持**内部一致性**（即满足所有已定义的完整性约束）。
+
 > serializability: transformation is equivalent as runs serialisable change order of transation
 > Serializable only check outcomes. it check the result to leave 
 
@@ -132,35 +134,79 @@ When and how can two operations cause a conflict?
 • Two schedules S1 and S2 are conflict-equivalent if
     • They are defined on the same set of TX
     • We can turn one into the other by a sequence of swaps of non-conflicting adjacent operations
-• A schedule is conflict-serializable if a conflict-equivalent serial schedule exists
+• > A schedule is conflict-serializable if a conflict-equivalent serial schedule exists
     • All conflicting operations must be executed in the same order in the serial schedule
     • The order of the remaining operations does not matter
     • Result: Schedule is free of concurrency-related issues like dirty reads, nonrepeatable reads, and phantom reads.
 
-- **冲突等价**：冲突等价是数据库管理系统中一种事务等价类型。如果两个调度中**任意两个冲突操作的顺序**（这两个操作最初属于同一事务）在两个调度中都保持不变，则这两个调度是冲突等价的。冲突操作是指作用于同一数据项且至少有一个是写操作的成对操作。
-    
-- 两个调度 S1 和 S2 是**冲突等价**的，当且仅当：
-    
-    - 它们基于同一组事务定义
-        
-    - 我们可以通过一系列**非冲突相邻操作的交换**将其中一个调度转换为另一个
-        
-- 一个调度是**冲突可串行化**的，如果存在一个与它冲突等价的串行调度
-    
-    - 所有冲突操作在串行调度中必须以相同的顺序执行
-        
-    - 其余操作的顺序无关紧要
-        
-    - 结果：该调度不会出现脏读、不可重复读和幻读等并发相关问题
 
 
 why conflicet serializability is better serialzability: 
 serializability 难设计, conflicet serializability 给我们指引了方向 如何去设计 transation serialisation ( reorder the read and write operation )
 
+### 4.2.1 冲突等价 Conflict Equivalence
+
+- 两个调度 S1 和 S2 是**冲突等价**的，当且仅当：
+    - 它们基于同一组事务定义        
+    - 我们可以通过一系列**非冲突相邻操作的交换**将其中一个调度转换为另一个
+
+- **冲突等价**：冲突等价是数据库管理系统中一种事务等价类型。如果两个调度中**任意两个冲突操作的顺序**（这两个操作最初属于同一事务）在两个调度中都保持不变，则这两个调度是冲突等价的。冲突操作是指作用于同一数据项且至少有一个是写操作的成对操作。
+
+两个调度 S1 和 S2 是冲突等价的，当且仅当：
+1. 它们包含**相同的事务集合**。
+2. 对于任意一对**冲突的操作**，它们在 S1 和 S2 中的**先后顺序相同**。
+
+**什么是“冲突操作”？**
+两个操作属于不同事务、访问同一个数据项，并且**至少有一个是写操作**时，它们就是冲突的。
+
+**三种冲突类型**：
+1. **读-写冲突**：Rᵢ(X) 和 Wⱼ(X)（i ≠ j）
+    - 顺序改变会影响读取的值。
+2. **写-读冲突**：Wᵢ(X) 和 Rⱼ(X)（i ≠ j）
+    - 顺序改变会影响读取的值。
+3. **写-写冲突**：Wᵢ(X) 和 Wⱼ(X)（i ≠ j）
+    - 顺序改变会影响数据的最终值。
+
+**注意**：读-读操作（Rᵢ(X) 和 Rⱼ(X)）**不冲突**，因为无论顺序如何，读取的值都一样。
 
 
+---
 
-## 4.3 Example
+为什么通过交换非冲突相邻操作可以实现转换？
+- **相邻操作**：在调度中紧挨着的两个操作。
+- **非冲突操作**：可以安全交换顺序而不影响最终结果的操作（例如读-读，或访问不同数据项的操作）。
+- 如果我们能通过一系列这样的交换将 S1 转换成 S2，那么它们就是冲突等价的。
+
+**例**：  
+调度：R₁(A) R₂(A) W₁(A)  
+R₁(A) 和 R₂(A) 是读-读，可以交换顺序。  
+交换后：R₂(A) R₁(A) W₁(A)  
+这两个调度是冲突等价的。
+
+
+## 4.3 冲突可串行化 Conflict-serializable
+
+- 一个调度是**冲突可串行化**的，如果存在一个与它冲突等价的串行调度
+    - 所有冲突操作在串行调度中必须以相同的顺序执行
+    - 其余操作的顺序无关紧要
+    - 结果：该调度不会出现脏读、不可重复读和幻读等并发相关问题
+- 
+
+如果一个调度 S 与**某个串行调度**冲突等价，则称 S 是冲突可串行化的。
+
+**串行调度**：事务一个接一个地执行，没有交错。
+
+**如何判断？**
+
+1. **构建优先图（Precedence Graph）**：
+    - 每个事务是一个节点。
+    - 如果 Tᵢ 的某个操作与 Tⱼ 的某个操作冲突，并且在调度中 Tᵢ 的操作在前，则画一条边 Tᵢ → Tⱼ。
+2. **检查环**：
+    - 如果图中**没有环**，则该调度是冲突可串行化的。
+    - 如果图中有环，则不是冲突可串行化。
+
+
+## 4.4 Example
 ‣ Initial Schedule:
     ‣ S1: R1(A), W1(A), R2(A), W2(A), R1(B), W1(B), R2(B), W2(B)
 ‣ Consists of two transactions:
@@ -177,7 +223,7 @@ serializability 难设计, conflicet serializability 给我们指引了方向 �
 
 ![](image/Pasted%20image%2020250118201205.png)
 
-## 4.4 Advantages of Conflict Serializability
+## 4.5 Advantages of Conflict Serializability
 ‣ Consistency: Conflict serializability guarantees that the transactions’ outcomes correspond to the sequence in which they were carried out
 ‣ Correctness: Regardless of the order in which transactions were submitted, conflict serializability guarantees that transactions are executed correctly
 ‣ Enhanced Concurrency: By enabling concurrent execution of operations without causing conflicts, conflict serializability enhances concurrency
@@ -191,7 +237,7 @@ serializability 难设计, conflicet serializability 给我们指引了方向 �
 - **更高的并发性**：通过允许无冲突的操作并发执行，冲突可串行化提高了系统的并发处理能力
 
 
-## 4.5 Disadvantages of Conflict Serializability
+## 4.6 Disadvantages of Conflict Serializability
 ‣ Complexity: Conflict serializability can be complex to implement, especially in large and complex databases
 ‣ Limited Concurrency: Conflict serializability can limit the degree of concurrency in the system because it may delay some transactions to avoid conflict
 ‣ Increased Overhead: Conflict serializability requires additional overhead to maintain the order of the transactions and ensure that they do not conflict with each other

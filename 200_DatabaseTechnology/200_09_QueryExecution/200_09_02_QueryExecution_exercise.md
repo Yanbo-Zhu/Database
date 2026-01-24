@@ -316,7 +316,7 @@ Solution
 4. **负载类型**：OLTP→火山，OLAP→向量化
 
 
-# 7 Question 7 
+# 7 Question 7: alculate the number of invocations
 
 Given the following SQL query and its excution steps, calculate the number of invocations for each operator on each processing model. For Materialization Model, assume that intermediate results are fully materialized.
 
@@ -365,4 +365,91 @@ Solution
 
 
 ![](image/Pasted%20image%2020260121151935.png)
+
+# 8 Quiz
+
+## 8.1 Calculate the number of invocations
+
+Given the following SQL query and execution steps, calculate the number of invocations per operator for each processing model (Volcano, Materialization, Vectorization).
+
+**SQL:**
+
+```
+SELECT MIN(e.salary)
+FROM employee e
+WHERE e.age > 35;
+```
+
+**Execution steps:**
+
+1. Scan table `employee e`.
+2. Filter results on `e.age > 35`.
+3. Aggregate tuples on `MIN(e.salary)`.
+
+**Important assumptions:**
+
+- Table employee consists of 500000 rows.
+- The predicate (`e.age > 35`) has a selectivity factor of 0.5 (50% pass this filter).
+- The vectorization model uses a batch size of 2000 tuples (processes 2000 tuples at a time).
+- For the materialization model, intermediate results are fully materialized.
+
+ 
+ ----
+
+ **1. 火山模型（Tuple-at-a-time / Volcano）**
+
+- 每个算子一次处理一个元组，通过 `next()` 调用传递。
+    
+- **Scan**：被调用 500,000 次（每个元组一次）。
+    
+- **Filter**：被调用 500,000 次（每个元组一次）。
+    
+- **Aggregate**：调用次数取决于通过 filter 的元组数量。  
+    通过 filter 的元组数 = 500,000 × 0.5 = 250,000。  
+    Aggregate 每次收到一个元组时更新一次 MIN，所以是 **250,000 次**。
+
+---
+
+**物化模型（Operator-at-a-time / Materialization）**
+
+- 每个算子一次性处理全部输入，并物化完整中间结果。
+    
+- **Scan**：调用 **1 次**，读取全表并输出所有 500,000 个元组。
+    
+- **Filter**：调用 **1 次**，接收 500,000 个元组，输出 250,000 个元组（完全物化）。
+    
+- **Aggregate**：调用 **1 次**，接收 250,000 个元组，计算 MIN。
+
+
+**向量化模型（Vector-at-a-time / Vectorization）**
+
+- 每次处理一批元组，批量大小 = 2000 个元组。
+    
+- 批次数 = 总行数 / 批量大小（向上取整）。
+    
+- 需要按照流水线传播来计算各算子的调用次数。
+
+
+批次数 = ceil(500,000 / 2000) = ceil(250) = 250 批
+Scan 调用次数 = 250 次
+
+
+Filter 接收来自 Scan 的 250 批，每批最多 2000 个元组（最后一批可能少些）。  
+Filter 需要输出批次给 Aggregate，但这里的 Aggregate 只需要一个值，通常是向量化模型会逐批更新状态（例如每批计算部分 MIN，最后合并）。  
+对于向量化模型，通常 Aggregate 会接收来自 Filter 的输出批次并逐批更新聚合状态，但这里需要看 Filter 的输出批次数。
+
+Filter 不会改变批次数（它过滤掉元组，但输出的批次仍然是连续的，除非整批都被过滤掉才会产生空批，但向量化实现中通常还是会传一个空批或者跳过？）。
+
+实际上，更常见的设计：
+
+- Scan 输出 250 批 → Filter 对每批应用条件，输出可能是较少的元组，但批次仍以相同批次数量传递给 Aggregate，只是某些批次可能为空。
+    
+- 因此 Filter 调用次数 = 接收批次数 = 250 次。
+    
+- Aggregate 调用次数也等于 Filter 输出批次数 = 250 次（因为向量化 Aggregate 每批更新一次局部 MIN，最后合并）。  不应该这样计算
+    - 500000/2/2000  = 125
+
+Scan:     250 次
+Filter:   250 次
+Aggregate: 125 次
 
