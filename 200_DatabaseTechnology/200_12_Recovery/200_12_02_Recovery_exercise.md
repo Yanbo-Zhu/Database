@@ -1,9 +1,8 @@
 
-
 # 1 Introduction
 
 ## 1.1 What types of storage devices do DBMSs use and for what purpose?
-    
+
 ## 1.2 What are transactions?
     
 ## 1.3 What are the fundamental properties of transactions?
