@@ -60,6 +60,8 @@ The highest achievable speedup is linear speedup
 ---
 What About Super-Linear Speedups?
 
+Double the main memory, you can load bigger data to larger page, the twice as fast 000000000000000000000000000000000000000000000000000000000000000000000000
+
 ![](image/Pasted%20image%2020260124123630.png)
 
 Doubling the number of processors => Program runs more than twice as fast. Is this even possible?
@@ -176,6 +178,8 @@ Data is exchanged through direct node-to-node communication
 ‣ Geographic distribution of data
 ‣ Performance 
 ‣ Cost
+
+by adding CPU:   in order to achieve scalability in shared Disk mode, we need more node, and more cpu to mange those node 
 
 
 ![](image/Pasted%20image%2020260124125323.png)

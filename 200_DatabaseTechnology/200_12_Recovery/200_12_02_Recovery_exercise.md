@@ -3,30 +3,47 @@
 
 ## 1.1 What types of storage devices do DBMSs use and for what purpose?
 
+Disk (HDD, SDD):  Primary Storage, large capacity, cheap, durable in case of a power outage
+Memory (Dram ):  For Updates, smaller capacity, fast, more expensive, volatile 
+
 ## 1.2 What are transactions?
-    
+
+
+Sequences of logically related operations in a database that run as a single unit 
+
 ## 1.3 What are the fundamental properties of transactions?
-    
+
+
+1. Run atomically, either Commit or Abort
+2. DB is consistent before and after the txn (to the user)
+3. Do not affect each other (to the user)
+4. Effects are durable
+
 ## 1.4 How do we manage data between the two storage devices?What can happen when a crash occurs? 
 
-Butter page data stored in Pages Between Disk and main momey
-    
+- The Buffer manager moves data pages between disk and memory as required 
+- Over time, the content of the pages deviated from their copy on disk (dirty pages)
+- In the event of a crash, updated are lost
+
+Butter page data stored in Pages Between Disk and main momery
+
+
+
 ## 1.5 Given his overview of a transaction managed by a DBMS using a BufferPool. What problems can be caused here?
 
 ![](image/Pasted%20image%2020260124115244.png)
+
+
+
+
 
 ## 1.6 DBMS crashes at point .What should happen to the in-flight transactions?
 
 ![](image/Pasted%20image%2020260124115322.png)
 
 
-# 2 Buffer Mangement 
+# 2 Buffer Mangement (Steal and Force )
 
-## 2.1 Steal and Force 
-
-## 2.2 #
-
-![](image/Pasted%20image%2020260124114717.png)
 
 STEAL: allow uncommitted txn to overwrite committed value and flush.
 
@@ -36,28 +53,61 @@ FORCE: require all pages modified by a txn to be flushed to disk before commit.
 
 NO-FORCE: do not require to flush every modified page to disk before commit.
 
-## 2.3 Are we allowed to flush the page under the no-steal policy?
-    
-## 2.4 Do we need to flush the page under the force policy?
+## 2.1 What is the problem here?
 
-# 3 ARIES ARIES basic principle:
+![](image/Pasted%20image%2020260124114717.png)
 
-Use WAL during txn execution
 
-Flush WAL to disk before dirty pages
 
-Use WAL on restart to restore state before crash via undo & redo
+- We run tow txns modifying the same page concurrently
+- txn 2 wants to commit, we want those changes durable
+- txn 1 will later abort, we do not want those changes durable 
+
+## 2.2 Are we allowed to flush the page under the no-steal policy?
+
+No, No-steal prevents flushing pages with uncommitted changes 
+
+## 2.3 Do we need to flush the page under the force policy?
+
+Yes, the force policy requires that, before committing, the dirty pages affected by the txn be flushed disk 
+
+# 3 ARIES  basic principle:
+
+
+
+---
+
+
+What is the basic principle of a Write-Ahead Log (WAL)?
+
+- Use WAL during txn execution
+- Flush WAL to disk before dirty pages
+- Use WAL on restart to restore state before crash via undo & redo
+
+---
+
+Which buffer pool policy does WAL-based recovery implement?
+Append all changes made by transactions to the DB to a log file.
+The DBMS must flush all relevant log records corresponding to changes that made a page dirty to disk before it can flush the page itself 
+
 
 # 4 Aries Example 
+
 
 ![](image/Pasted%20image%2020260124114748.png)
 
 ## 4.1 Why do we want to store the prevLSN in the log entries?
 
+When traversing the log in reverse direction during UNDO, we may want to skip irrelevant records and follow only a specific txn 
+
 ![](image/Pasted%20image%2020260124120120.png)
 
 
 ## 4.2 If we crash now already, is this a problem? Why or why not?
+
+Not a problem, because 
+- No txn has committed yet. Therefore, no redo is necessary
+- No dirty pages of uncommitted transactions have been flushed to disk, so no undo is necessary either
 
 ![](image/Pasted%20image%2020260124120201.png)
 
@@ -72,6 +122,10 @@ Use WAL on restart to restore state before crash via undo & redo
 
 ## 4.4 flushedLSN tells us the last LSN that was successfully flushed to disk.
 
+- Flush the log until LSN 4. only then, in case of a failure, can we undo the change. 
+- Flush the page itself to disk.
+- Remove the entry from DPT; the page is not dirty anymore
+
 ![](image/Pasted%20image%2020260124120331.png)
 
 
@@ -83,6 +137,11 @@ Use WAL on restart to restore state before crash via undo & redo
 # 5 Aries Example: If a crash happens now, what happens to our data structures?
 
 10 and 11  and two Pages table with PID=2 or 3 will be lost 
+
+Which txns need to be aborted
+1. WAL tail in memory, pages2 and 3 in memory, ATT and DPT are lost. Everything else is durable
+2. T2 did not commit, and therefore needs to abort. T1's commit log entry is persisted on disk
+
 ![](image/Pasted%20image%2020260124121105.png)
 
 
@@ -92,6 +151,9 @@ Use WAL on restart to restore state before crash via undo & redo
 
 
 ## 5.2 How do we find out what we need to redo?
+
+- Analyse the log in forward direction and populate ATT and DPT
+- Oldest recLSN in DPT tells us where to start REDO
 
 ![](image/Pasted%20image%2020260124121144.png)
 
@@ -104,7 +166,7 @@ Use WAL on restart to restore state before crash via undo & redo
 
 ![](image/Pasted%20image%2020260124121323.png)
 
-# 6 Undo 
+# 6 Aries Example: Undo 
 
 1. What txns do we need to UNDO?
 2. Where do we start to UNDO?: redo the coperationen which do undo 
@@ -114,9 +176,7 @@ Use WAL on restart to restore state before crash via undo & redo
 ![](image/Pasted%20image%2020260124121431.png)
 
 
-
-
-# 7 Checkpoint 
+# 7 Aries Example:  Checkpoint 
 What if the database has been running for a year without failure?How could we improve on recovery performance?
 
 use checkpoint. This point, the excution are complete, gerabge the log into checkpoint and make a snapshot 
