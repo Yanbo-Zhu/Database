@@ -143,12 +143,11 @@ no meta data (e.g., block header)
 
 
 Tree height for 100 * 106 records
-• ⌈log340(100 * 106)⌉=4
+• ⌈log340(100 * 106)⌉=4   求上限 
 
 
 
 ## 4.2 Search
-
 
 • Find K (recursively)
 • If we are at a leaf, search k on the leaf: if the ith key is k, the ith pointer points to the record
@@ -185,10 +184,10 @@ Additional block access(es) to retrieve record(s)
 Consider the B⁺ tree below with the following properties:
 
 - Each node (except the root) contains keys.
-- Inner nodes: The keys in the subtree below the pointerare less than the key ; the keys in the subtree below the pointer are greater or equal than the key- .
+- Inner nodes: The keys in the subtree below the pointer are less than the key ; the keys in the subtree below the pointer are greater or equal than the key- .
 - Insert operations may only trigger node splits but not shifting of keys into bordering leafs.
 - When a node is split, the middle key is moved to the parent node.
-- Pointersin leaves point to row IDs. Pointer in leaves points to the next leaf.
+- Pointers in leaves point to row IDs. Pointer in leaves points to the next leaf.
 
 
 Search corresponding leaf
