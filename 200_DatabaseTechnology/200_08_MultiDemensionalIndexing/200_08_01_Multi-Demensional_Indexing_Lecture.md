@@ -6,6 +6,9 @@ Graph Data
 Spatial Data
 Temporal Data
 
+![](image/Pasted%20image%2020260301210844.png)
+
+
 
 # 2 OLTP and OLAP 
 
@@ -22,7 +25,6 @@ or, we did not care about the block size
 
 Strategies for arranging multi-dimensional Data on Disk
 
-
 data can be accessed efficiently  
 data is partitioned into several subregions
 
@@ -31,13 +33,10 @@ data is partitioned into several subregions
 
 # 5 Object Storage
 
-Nowadays, when storing large amounts of data, we use
+Nowadays, when storing large amounts of data, we use Object Storage  
 
-Object Storage  
 Object storage has higher latencies
-
 data is accessed over the network
-
 → Disk Latency is less important  
 
 We should not store all data in a single Bucket Therefore, we need to partition the data
@@ -117,15 +116,19 @@ Overlay multidimensional space with a grid
 
 
 
-Search corresponding bucket If space: insert
+Search corresponding bucket 
+If space: insert
+
 If no space:
-• Alternative 1: 
-- Overflow block
-• Sequences of overflow blocks should not get too long! • Alternative 2: Change grid (similar to dynamic Hashing)
-• Add grid lines • Move grid lines • Problems:
-Insert
-• Moving or adding a line has impact on all buckets along the line • Optimal choice not always possible
-• May create many empty buckets • Buckets may remain full
+- Alternative 1:  Overflow block
+    - Sequences of overflow blocks should not get too long! 
+- Alternative 2: Change grid (similar to dynamic Hashing)
+    - Add grid lines 
+    - Move grid lines 
+    - Problems: Moving or adding a line has impact on all buckets along the line
+    - Optimal choice not always possible
+        - May create many empty buckets 
+        - Buckets may remain full
 
 
 ---
@@ -154,12 +157,39 @@ Point query (age and salary specified to a point)
 Partial match query (only age OR salary specified)
 • I/O: All buckets of a row or columns of the bucket matrix
 
-Range queries: specify multidimensional range • All buckets overlapping the range matter!
+Range queries: specify multidimensional range 
+• All buckets overlapping the range matter!
 • 35≤age≤45
 • 50 ≤ salary ≤ 100
 • If a lot of buckets
     • Only few at the boundary
--Number of I/Os
+• Number of I/Os
+
+----
+
+
+**高维度问题：桶的数量呈指数级增长——很多空桶**
+- 即使只有两个维度，也可能出现这种情况。什么时候？
+    - 例如 **年龄和薪水相关** 时（数据分布不均匀，导致很多网格单元为空）
+
+**网格线的选择要满足：**
+- **桶矩阵**能放入主内存
+- 每个维度的**索引**能放入主内存
+- **溢出块**不能太多
+
+**点查询**（同时指定年龄和薪水的精确值）
+- **1 次 I/O** 读取桶
+- 插入/删除：**额外 1 次 I/O**
+
+**部分匹配查询**（只指定年龄 OR 只指定薪水）
+- I/O：需要读取桶矩阵中的**一整行或一整列**的所有桶
+
+**范围查询**：指定多维范围
+- 所有**与范围重叠的桶**都需要读取！
+- 例如：35 ≤ 年龄 ≤ 45，50 ≤ 薪水 ≤ 100
+- 如果桶的数量很多：
+    - 只有**边界上的桶**需要读取（内部的桶如果完全包含在范围内，也要读，但这里说的是重叠判断）
+- **I/O 次数**取决于与范围重叠的桶的数量
 
 ![](image/Pasted%20image%2020260120145817.png)
 
@@ -222,6 +252,8 @@ Example: (50, 200)
 
 ![](image/Pasted%20image%2020260120150641.png)
 
+
+
 # 12 Tree-based:  K diemensional-Tree
 
 
@@ -269,6 +301,21 @@ Example
 • Idea 2: Group several inner nodes in one disk block • One node and all descendants up to a certain level
 
 
+**问题 1：到叶子的路径长度比 B 树长得多**
+- **二叉树 vs. N 叉树**（B 树是多叉的，所以树高更低）
+
+**问题 2：kd-树的内部节点很小**
+- 每个内部节点只存储一个（属性，值）对
+
+**改进思路 1：N 叉内部节点**
+- 每个内部节点存储 **n 个值**，将值范围划分为 **n+1 个区间**
+- 从而实现多路分支
+
+**改进思路 2：将多个内部节点组合在一个磁盘块中**
+- 将一个节点及其**直到某一层的所有后代**放在同一个磁盘块中
+- 减少 I/O 次数
+
+
 ![](image/Pasted%20image%2020260120151336.png)
 
 # 13 Tree-based:  Quad-Tree
@@ -296,6 +343,18 @@ R-tree separates 2- or multidimensional spaces into regions
 • Subregions do not cover complete space • Subregions may overlap
 • Goal: Overlap should be minimal.
 
+**与 B 树的类比**
+- **B 树** 将一维直线划分成 **一维区间**
+- 这种划分简化了搜索：**只需要搜索一个子节点**
+
+**R 树** 将二维或多维空间划分为 **区域**
+- 区域可以是任意形状，通常是**矩形**（即多维区间）
+- **区域和子区域的层次结构**
+- 子区域**不覆盖整个空间**
+- 子区域之间**可能重叠**
+- **目标：重叠应该尽可能小**
+
+
 ![](image/Pasted%20image%2020260120152240.png)
 
 ![](image/Pasted%20image%2020260120152248.png)
@@ -316,8 +375,21 @@ R-tree separates 2- or multidimensional spaces into regions
 • Search of a range query proceeds along all paths that overlap with the query.
 • Parents store the min and max values from all child nodes
 
+B 树在多维空间的扩展
+
+既可以支持点数据，也可以支持具有空间范围的数据（例如矩形）
+
+将对象分组为可能重叠的簇（例子中是矩形）
+
+范围查询的搜索沿着所有与查询区域重叠的路径进行
+
+父节点存储所有子节点的最小值和最大值（即该节点的边界矩形，MBR）
+
 ## 14.2 Operations
+
+
 ## 14.3 Typical query: Where am I? (point query)
+
 • Start with root (= whole region)
     • For every subregion check if point is contained in region.
     • If not: done
@@ -336,9 +408,35 @@ R-tree separates 2- or multidimensional spaces into regions
     • However, regions must cover all records
 • New leaves must be represented in parent nodes
 
+---
+
+**寻找有空间的区域**
+- 通常存在多个可选区域
+
+**可能扩展某个子区域**
+- 尽量让扩展量**尽可能小**
+
+**递归向下直到叶子节点**
+- 必要时**分裂叶子节点**
+- 让新的区域**尽可能小**
+- 但是，区域必须**覆盖所有记录**
+
+**新的叶子节点必须在父节点中表示**
+
+---
+
+这是 R 树插入的核心逻辑：
+1. **选择子树**：从根开始，选择扩展最小的子节点
+2. **插入到叶子**：如果叶子有空间，直接插入；否则分裂
+3. **向上调整**：分裂后，父节点需要更新边界矩形或添加新条目
+4. **根节点分裂**：如果根也满了，树的高度增加
+
+
 ![](image/Pasted%20image%2020260119223416.png)
 
 ![](image/Pasted%20image%2020260120152809.png)
+
+
 
 ![](image/Pasted%20image%2020260120152817.png)
 
@@ -348,8 +446,27 @@ R-tree separates 2- or multidimensional spaces into regions
 
 ## 14.5 R-Trees — Split Node
 
-MBR is an n-dimensional Minimal Bounding Rectangle used in R trees • It is the minimal bounding n-dimensional rectangle that bounds its corresponding objects
+MBR is an n-dimensional Minimal Bounding Rectangle used in R trees
+It is the minimal bounding n-dimensional rectangle that bounds its corresponding objects
 MBR face property: Every face of any MBR contains at least one point of some object in the DB
+
+
+这是关于 **R 树中 MBR（最小边界矩形）** 的定义及其重要性质，我来翻译成中文：
+
+**MBR** 是 R 树中使用的 **n 维最小边界矩形**
+- 它是能够包围其对应对象的 **最小 n 维矩形**
+
+**MBR 的面性质**：
+- **任何 MBR 的每个面上都至少包含数据库中某个对象的一个点**
+- 即：MBR 的每条边都与某个对象相切，没有多余的空白空间
+
+
+这个性质很重要，因为它保证了：
+1. **MBR 确实是"最小"的**，没有浪费的空间
+2. **查询效率更高**，因为 MBR 紧密包围对象，减少不必要的重叠和空白区域
+3. **分裂算法**可以利用这个性质来决定如何划分
+
+需要我解释一下这个性质在 **R 树分裂算法**（如 Quadratic Split）中是如何应用的吗？
 
 ## 14.6 Nearest Neighbour Search
 
@@ -363,6 +480,26 @@ Simple Strategy:
 • Re-execute the range query with the distance d' around Q
 • Compute distance of Q from each retrieved object. The object at minimum distance is the nearest neighbor
 • Issues: how to guess range, the retrieval may be sub-optimal if incorrect range guessed. Becomes a problem in high dimensional spaces.
+
+
+**查询点 Q 的最近邻搜索**
+
+**简单策略：**
+- 将最近邻搜索转换为**范围搜索**
+- **猜测一个包含 Q 的范围**，假设该范围内至少有一个对象 O
+    - 如果当前猜测范围不包含任何对象，则**扩大范围**直到找到对象
+- 计算 **Q 与 O 之间的距离 d'**
+- 以 Q 为中心，**d' 为半径**重新执行范围查询
+- 计算 Q 与检索到的每个对象之间的距离，**距离最小的对象就是最近邻**
+
+**问题：**
+- 如何**猜测初始范围**？
+- 如果初始范围猜得不对，检索结果可能不是最优的
+- 在**高维空间**中，这个问题变得更加严重
+
+
+这是 **最近邻搜索的"转化为范围查询"方法**，但确实存在效率问题。更优的方法是使用**分支定界（Branch and Bound）**或**最佳优先搜索（Best-First Search）**，利用优先队列按距离遍历 R 树。
+
 
 ![](image/Pasted%20image%2020260120153623.png)
 
@@ -378,7 +515,6 @@ Guttman's R-trees sparked much follow-up work
 
 R* tree combined numerous improvements to Guttman's R-tree
 
-
 Better splits
 • consider both area and perimeter during split
 • Higher tree levels split based on area, lower nodes based on perimeter
@@ -392,6 +528,38 @@ shrink overflowing MBR, and re-insert those entries • Issues:
 
 
 ![](image/Pasted%20image%2020260120153855.png)
+
+
+这是关于 **R* 树（R-star tree）** 对原始 R 树的改进，我来翻译成中文：
+
+**R* 树 结合了对 Guttman 的 R 树的诸多改进**
+
+**更好的分裂策略**
+- 分裂时**同时考虑面积和周长**
+- **高层节点**根据**面积**进行分裂
+- **低层节点**根据**周长**进行分裂
+
+**推迟分裂？**
+- 当节点溢出时，先不分裂，而是**收缩溢出的 MBR**，然后**重新插入**部分条目
+- **问题：**
+    - **重新插入哪些条目？**
+    - **重新插入多少？**
+    - 大约 **30%**
+
+---
+
+**R* 树的核心改进：**
+
+1. **强制重新插入（Forced Reinsert）**  
+   - 当节点溢出时，从该节点中移除一部分条目（通常是 30%），然后重新插入到树中
+   - 这样可以**动态调整树结构**，减少重叠，提高查询效率
+
+2. **分裂策略优化**
+   - 不仅考虑**面积增加最小**，还考虑**重叠减少**和**形状更方正**（即考虑周长）
+   - 叶子节点分裂更注重**空间分布均匀性**
+
+需要我详细解释一下**强制重新插入**的具体步骤和效果吗？
+
 
 ---
 
@@ -475,6 +643,7 @@ Bitmap indices can be easily compressed, e.g., using run-length encoding: 111000
 
 
 ## 16.3 Querying Bitmap Indices
+
 Point queries: Count bits, then retrieve correct block
 Partial Match Queries: Fetch all blocks where the Bitmap is 1
 Range Queries: Apply AND on Bitmaps then retrieve correct block Fetch all blocks where the Bitmap is 1

@@ -2,7 +2,8 @@
 # 1 B⁺ Trees
 
 ## 1.1 Explain the data structure from a B tree given below:
-    
+
+
 
 ![](https://dima.gitlab-pages.tu-berlin.de/dbt/exercise-base/_images/btree-block.png)
 
@@ -13,8 +14,7 @@
 
 ## 1.2 What is the advantage of using B/B⁺ Trees over Binary Trees?
 
-In B* trees, only the leaves point to the data. Also in B* Trees, a leaf points t the next leaf in sequence (to the right)
-
+In B trees, only the leaves point to the data. Also in B+ Trees, a leaf points t the next leaf in sequence (to the right)
 Binary tees have less condition checking but more I/O (disk accesses)
 B+ Tree are much flatter, which means , they have more condition checks but less I/O accesses
 Because the time spent on I/O is way more costly than the cost conditional branches 
@@ -49,7 +49,7 @@ Given the following B Tree with a block size of 4, how does the B⁺ Tree look a
 
 ![[Pasted image 20251123165347.png]]
 
-# 3 B⁺ Tree Deletion
+# 3 B+ Tree Deletion
 
 Given a B⁺ Tree with a block size of 4, remove 24 and 30 from the following B⁺ Tree:
 ![[btrees_delete_start.png]]

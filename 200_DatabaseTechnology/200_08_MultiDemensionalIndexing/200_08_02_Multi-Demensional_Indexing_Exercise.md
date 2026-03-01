@@ -1,5 +1,4 @@
 
-
 # 1 Basics
 
 What kinds of multidimensional indices exist? Into which categories can they be grouped?
@@ -398,6 +397,11 @@ Also, you are given a page size of 4096 byte.
 What is the size of the bitmap indices for each of the variables? How many blocks do they cover? (assume that two bitmaps cannot share a block)
 Assume now the table is clustered on productID and the index is compressed using the following run length encoding, how big is the bitmap index for productID?
 
+已知页面大小为 4096 字节。
+每个变量的位图索引的大小是多少？它们占用多少个块？（假设两个位图不能共享同一个块）
+现在假设表已按 productID 聚集，并且索引使用以下游程长度编码进行压缩，那么 productID 的位图索引有多大？
+
+
 事实表有 200 Mio 行（200,000,000 行）
 storeID：1000 个不同值
 productID：50 个不同值
@@ -437,8 +441,6 @@ storeID=1000 的位图
 （显然这个索引本身比原表大得多，不现实，说明 timestamp 不适合用普通位图索引）
 
 
-
-
 4 
 占用的块数
 一个块 4096 字节 = 32768 比特。
@@ -458,6 +460,8 @@ timestamp：150M × 6104 块 → 天文数字，不实际
 
 
 ![](image/Pasted%20image%2020260120155331.png)
+
+
 
 ## 5.2 Run length encoding 表按 productID 聚类后的压缩
 

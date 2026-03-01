@@ -1,91 +1,8 @@
 
-
-
-
 # 1 Quiz
 
 
-## 1.1 
-
-Consider relation students(studentID, degree, courseID) with bitmap indexes on degree and courseID.
-
-Bitmap index on degree:
-
-ISM: 010101
-CS: 101010
-
-
-Bitmap index on courseID:
-
-DBT: 101000
-DBTLAB: 010010
-ROC: 000100
-DW: 000001
-
-Which table matches these bitmap indexes?
-
-Each bitmap is 6 bits long, so the table has 6 rows (students).
-
-Bitmap index on degree
-```
-ISM: 010101
-CS : 101010
-
-```
-
-
-| Row | ISM | CS | Degree |
-| --- | --- | -- | ------ |
-| 1   | 0   | 1  | CS     |
-| 2   | 1   | 0  | ISM    |
-| 3   | 0   | 1  | CS     |
-| 4   | 1   | 0  | ISM    |
-| 5   | 0   | 1  | CS     |
-| 6   | 1   | 0  | ISM    |
-
-So degree alternates CS, ISM, CS, ISM, CS, ISM.
-
----
-
-Bitmap index on courseID
-
-```
-DBT    : 101000
-DBTLAB : 010010
-ROC    : 000100
-DW     : 000001
-
-```
-
-
-逐行解释：
-
-第 1 行：DBT=1 → DBT
-
-第 2 行：DBTLAB=1 → DBTLAB
-
-第 3 行：DBT=1 → DBT
-
-第 4 行：ROC=1 → ROC
-
-第 5 行：DBTLAB=1 → DBTLAB
-
-第 6 行：DW=1 → DW
-
----
-
-最终得到学生表（students）
-
-1   CS     DBT
-2   ISM    DBTLAB
-3   CS     DBT
-4   ISM    ROC
-5   CS     DBTLAB
-6   ISM    DW
-
-
-
-## 1.2 ##
+## 1.1 extensible hash table
 
 Consider the following extensible hash table:
 
@@ -96,7 +13,6 @@ Current state:   i= 1
 How does the hash table look after inserting key 0100?
 
 当全局深度 i = 1 时，目录只看 哈希值的最前1 位。
-
 
 因为当我们分裂桶 A 时，它的 local depth 从 1 → 2。
 
@@ -183,8 +99,7 @@ How does the hash table look after inserting key 0100?
 不能分到 10 或 11（这是目录项 1 的范围）
 
 
-
-## 1.3 
+## 1.2 extensible hash table
 
 When splitting a block in an extensible hash table and distributing keys into new blocks, one of the new blocks can be empty.  
 
@@ -197,8 +112,6 @@ Falsch
 分裂时，块的局部深度（local depth）增加 1，然后根据"多看的一个哈希位"把记录重新分配到两个新块。
 
 
-
-
 重点来了：
 
 ❗ 因为原块中是满的，所以里面至少有一些记录
@@ -209,36 +122,44 @@ Falsch
 
 ⚠️ 但在理论和考试标准中，新产生的块"完全为空"被视为不可能
 
-
-
-
 因为：
-
 原块中 所有记录至少会进入两个新块之一。
 不可能把所有记录都分给一个块、另一个块完全没用。
-
 （除非哈希函数非常异常，但可扩展哈希算法不允许这种情况被视为"正确分裂"）
 
 
+----
 
-## 1.4 ##
+2 An extensible hash table is optimized for an even distribution of data across blocks.	
+可扩展哈希（Extensible Hashing）被设计用来确保数据在所有桶之间均匀分布。
+👉 False（错误）
+
+解释：
+Extensible Hashing 的主要目标是：
+
+避免 overflow chain（溢出链）
+可以根据需要动态扩展目录
+使查找保持稳定成本
+它 依赖于良好的哈希函数 才能分布均匀，但 自身不是为了优化均匀分布而设计的，只是为"扩展"设计的。
+
+----
+
+3 An extensible hash table has a constant search cost.	
+虽然 Extensible Hashing 尽量 保持 O(1) 查找，但：
+
+目录可能变大
+内存可能不命中
+需要访问目录 + 桶
+分裂前可能有溢出块（overflow block）
+所以查找成本 不是严格常数，只是 平均接近常数。
 
 
 
-在 grid file 中，split 一个 partition = 把原来的一个分区拆成两个分区。
-
-因此 Page 分区数：
-
-
-120
-4×3×10=120
-
-
-
-## 1.5 ##
+## 1.3 linear hash table
 
 1 A linear hash table searches the bucket array using the least significant bits.	
  ture  就是用的最低位 
+ 
 线性哈希是一种 动态哈希技术，用于数据库中的索引结构。其设计目标是：
 
 随着数据增加自动扩容
@@ -246,44 +167,9 @@ Falsch
 保持平均 O(1) 的查询时间
 尽量减少溢出桶（overflow bucket）
 
+---
 
-
-2 An extensible hash table is optimized for an even distribution of data across blocks.	
-可扩展哈希（Extensible Hashing）被设计用来确保数据在所有桶之间均匀分布。
-
-👉 False（错误）
-
-解释：
-Extensible Hashing 的主要目标是：
-
-避免 overflow chain（溢出链）
-
-可以根据需要动态扩展目录
-
-使查找保持稳定成本
-
-它 依赖于良好的哈希函数 才能分布均匀，但 自身不是为了优化均匀分布而设计的，只是为"扩展"设计的。
-
-
-
-3 An extensible hash table has a constant search cost.	
-虽然 Extensible Hashing 尽量 保持 O(1) 查找，但：
-
-目录可能变大
-
-内存可能不命中
-
-需要访问目录 + 桶
-
-分裂前可能有溢出块（overflow block）
-
-所以查找成本 不是严格常数，只是 平均接近常数。
-
-
-
-
-
-4 A linear hash table searches the bucket array using the most significant bits.
+4 A linear hash table searches the bucket array using the most significant bits.  falsch 
 Linear Hashing 只使用最低有效位 LSB，随着扩展增长 k，使用最后 k bits：
 
 解释：
@@ -296,28 +182,20 @@ h(key) = 10101101
 绝不会用最高位。
 
 
+---
 
-## 1.6 ##
 
-
-When adding a new block to extend a linear hash table, we always have to rehash one existing bucket.
+3 When adding a new block to extend a linear hash table, we always have to rehash one existing bucket.
 wahr
 
 1 
 When adding a new block to extend a linear hash table, we always have to rehash one existing bucket.
-
 在线性哈希（Linear Hashing）中，当需要扩展哈希表时，做的事情是：
-
 按顺序分裂（rehash）现有桶中的一个 bucket，并将新桶加入表中。
-
 也就是说：
-
 线性哈希不会一次性重新分配所有桶（像可扩展哈希那样）。
-
 它采用 渐进扩展（incremental growth） 的方式。
-
 每次扩展哈希表时，都会 rehash（重哈希）一个现有的桶。
-
 
 2 
 
