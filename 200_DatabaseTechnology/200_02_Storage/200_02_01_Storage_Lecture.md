@@ -409,10 +409,7 @@ Looking for a tuple t in relation R with key k (index on key attribute)
     - 在磁盘块内搜索键值k仅需数千条CPU指令  
       - 即便采用线性查找也是如此
 
-所以 找到准确的位置， 然后load 具体位置的 数据， 而不是整个block 
-
-
-
+![](image/Pasted%20image%2020260301000327.png)
 # 4 Access Acceleration
 
 1. Store blocks that are processed together on same cylinder

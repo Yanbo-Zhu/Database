@@ -34,8 +34,6 @@ How do traditional DBMSs store these relations?
 
 `| [Tuple1] [Tuple2] [Tuple3] [Tuple4] … |`
 
-
-
 - What happens with variable-sized data?   
 - What happens on an update like this?
 
@@ -70,15 +68,14 @@ CREATE TABLE Student (
 
 ![[Pasted image 20251108225848.png]]
 
-![[Pasted image 20251109110408.png]]
-
 
 1. What is the size of an individual Record?
 2. How many records fit on a Page with 4096 bytes?
-
-
-
 3. What is the offest of the 33th tuple (assuming pages are filled in reverse order)
+
+![[Pasted image 20251109110408.png]]
+
+
 ![[Pasted image 20251109110451.png]]
 
 
@@ -148,10 +145,10 @@ INSERT INTO R VALUES(9, 9, 330, '21/02/2022')
 ```
 
 Given this query, what is the problem with pure DSM, and does PAX help here?
-- Need to create 4 new pages, one for each column.
+- DSM： Need to create 4 new pages, one for each column.
 - PAX stores columns adjacent to each other within a page.
-- In our example, the disk layout would be` [1 2 2 4 50 30 ‘12/05/2020’ ‘21/04/2021’]`
-- With PAX, we would only need to read/write to a single page, where we create 4 new column chunks
+    - In our example, the disk layout would be` [1 2 2 4 50 30 ‘12/05/2020’ ‘21/04/2021’]`
+    - With PAX, we would only need to read/write to a single page, where we create 4 new column chunks
 
 
 ![[Pasted image 20251109111033.png]]
@@ -310,17 +307,12 @@ Furthermore, assume that:
 
 **How many pages are required if the page size is 128 bytes?**
 
-
-
 Here’s the size of each variable-length record with the given header and per-field overhead:
 
-- Header = A(8) + B(4) + C(2) + D(2) = **16 bytes**
-    
+- Header = A(8) + B(4) + C(2) + D(2) = **16 bytes**    
 - Each variable field (Name, Address) adds **+2 bytes** on top of its raw length.
-    
 
 So per record:
-
 1. **John Doe (8)**, **3734 Capitol Avenue (19)**  
     16 + (8+2) + (19+2) = **47 B**
     

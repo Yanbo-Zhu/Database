@@ -60,8 +60,14 @@ Temporal locality
 6. What is virtual memory, and how does it function within a computer system?
 
 Solution: Virtual Memory is a Momery management technique that allows a computer to run more application than it's physical RAM would normally allow 
-
 When the system, runs out of physical RAM , it moves less used data from RAM to a speical file on the storage drive , a process called swapping or paging 
+
+虚拟内存是一种内存管理技术，它让计算机可以运行超过物理内存（RAM）容量限制的应用程序。
+
+它的工作原理是：当物理内存不足时，系统会将暂时不用的数据从内存自动转移到硬盘上一个名为交换文件（或页面文件）的特殊文件中。这一过程被称为交换或分页。
+
+通过这种方式，虚拟内存在物理内存和硬盘之间动态调度数据，为应用程序营造出一个容量近乎无限的内存空间。
+
 
 # 2 Disk Operations
 
@@ -80,8 +86,10 @@ When the system, runs out of physical RAM , it moves less used data from RAM to 
 
 ---
 
-3. A hard disk consists of 10 disks with 2 surfaces each. Each surface contains tracks, and each track holds an average of 512 sectors. Each sector is 4,096 bytes in size.
+3. A hard disk consists of 10 disks with 2 surfaces each. Each surface contains 2^17 tracks, and each track holds an average of 512 sectors. Each sector is 4,096 bytes in size.
 - Calculate the overall storage capacity of the hard disk.
+
+![](image/Pasted%20image%2020260228235337.png)
 
 
 ---
@@ -94,10 +102,17 @@ When the system, runs out of physical RAM , it moves less used data from RAM to 
 - Compute the **minimum time (best case)** it would take to access and read the data from the disk.
 - Compute the **average time** it would take to access and read the data from the disk.
 
-![[Pasted image 20251108235338.png]]
-## 2.1 Average Seek
+寻道时间 —— 磁头移动到目标磁道的时间
+旋转延迟 —— 等待目标扇区旋转到磁头下的时间
+传输时间 —— 数据从磁盘读到内存的时间
 
-Examine the SSD architecture given below. Explain each component and define their roles.
+![](image/Pasted%20image%2020260228235831.png)
+
+![[Pasted image 20251108235338.png]]
+
+---
+
+5. Examine the SSD architecture given below. Explain each component and define their roles.
 
 ![[Pasted image 20251108235409.png]]
 
