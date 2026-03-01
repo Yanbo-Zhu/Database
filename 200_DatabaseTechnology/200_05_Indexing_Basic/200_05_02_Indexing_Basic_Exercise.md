@@ -2,8 +2,7 @@
 
 # 1 What is an index and why do we want to have it in our DB?
 
-each index is for one field/  attribute 
-
+Each index is for one field/attribute 
 - To find rows in our database!
 - Everything is stored in files on disk, and we need to locate individual rows to update/delete/read them.
 - Without it, we would need to do a full table scan for every operation that we do.    
@@ -131,7 +130,6 @@ sparse / dense Index
 Hash Index 
 
 sorted/ordered index
-
 - Based on arrangement / lookup mechanism
 	- Ordering: Based on a sorted ordering of values 
 	- Hashing based on a distribution of keys to hash values, determined by a hash function
@@ -144,7 +142,6 @@ sorted/ordered index
 - Based on value arrangement
 	- Clustered Index (data sorted by year)
 	- accesse the data sequenctielly , because they are save  in order 
-- 
 
 # 6 Can a hash index be sparse 
 
@@ -158,7 +155,7 @@ hash index
 1 -> 
 2 -> 
 
-you can bot tell the hash function to be ordered, 因为 hash function 计算出来的结果 就是无序的
+you can not tell the hash function to be ordered, 因为 hash function 计算出来的结果 就是无序的
 
 
 …based on **value arrangement**
@@ -257,7 +254,6 @@ Clustered index（聚簇索引）**决定了数据表在磁盘上的物理存储
 
 1
 解释： 除非你复制出多份表（每份各自按不同的键排序），否则一个表无法同时按两个字段排序 → 所以不能有多个 clustered indexes。
-
 即:  一个物理表文件只能有一种物理顺序。
 
 
@@ -321,7 +317,6 @@ Given
 ## 10.1 how much space would a dense or sparse index need? 
 
 IndexTupleSize:  SearchKeySize + RecordPointerSIze 
-
 1. Tuples/Page 一页能存多少个 tuples
 2.  Pages: 150M tuples 一共需要多少页.   numIndexTuples:   `4.6875*(10^6)`
 3. IndexTuples/Page: 一页能够装多少index 
@@ -329,10 +324,13 @@ IndexTupleSize:  SearchKeySize + RecordPointerSIze
 ![[Pasted image 20251123153800.png]]
 
 Dense Index :  We assume we only have one index entry for each page 
-Sparse Index:  We assume 一页 （用来储存原本数据的） 对用有一个index 
+Sparse Index:  We assume 一页 （用来储存原本数据的） 对应有 一个index 
 
 To calculate the amount of pages to store the index 
+Dense Index 
 - IndexPages  一共需要多少页 去装index, 当一个tuple of data 就有一个index的时候
+
+Sparse Index 
 - IndexSize:  一共需要多少页 去装index ， 这些页数 乘以每一页的大小 
 
 
@@ -355,13 +353,11 @@ It is not end,   because if we find the right page , we also need to search xx i
 
 MultiLevel Index:   index of index 
 
-先建立 Dense Index 
-然后再简历这个dense index 的 sparse index 
+先建立 Dense Index : 这个是 first-level sparse index 
+然后再建立这个dense index 的 sparse index ， 这个  sparse index  面向 外部 .  second-level sparse index 
 
 
 ## 10.4 Disk Access Multilevel Index: How many pages on disk do we access to retrieve a tuple via a multilevel index on disk, if the dense or sparse index was just the attribute values sorted? 
-
-
 
 
 
@@ -370,29 +366,56 @@ MultiLevel Index:   index of index
 ## 11.1 
 
 Given the following properties:
-**Data file:** * 10 million tuples * Each tuple requires 2048 bytes
-**Disk:** * Block size: 4096 bytes
-**Index:** * Search key size: 8 bytes * Pointer size: 12 bytes * Index entries do not span blocks
+**Data file:** 
+* 10 million tuples 
+* Each tuple requires 2048 bytes
+**Disk:** 
+* Block size: 4096 bytes
+**Index:** 
+* Search key size: 8 bytes 
+* Pointer size: 12 bytes 
+* Index entries do not span blocks
 
 ---
-
-1 How many blocks are required to store this sparse index?
-(Give your answer as a single integer.)
-
 Dense Index :  We assume we only have one index entry for each page 
 Sparse Index:  We assume 一页 （用来储存原本数据的） 对用有一个index 
 
-1. Tuples/block, 1block能存多少个 tuples     → Each block holds **4096 / 2048 = 2 tuples**
-2.  Pages: 10M tuples 一共需要多少block.   numIndexTuples:   10M/2 = 5M.   A sparse index has **one entry per data block**, so it needs **5,000,000 index entries**.
-3. IndexTuples/Page: 一block 能够装多少index   4096/20 = 204 
-4. 一共需要多少 block 5M/204 =24510 
+
+1 How many blocks are required to store this sparse index? (Given the following properties:
+**Data file:** 
+* 10 million tuples 
+* Each tuple requires 2048 bytes
+**Disk:** 
+* Block size: 4096 bytes
+**Index:** 
+* Search key size: 8 bytes 
+* Pointer size: 12 bytes 
+* Index entries do not span blocks
+
+---
+Dense Index :  We assume we only have one index entry for each page 
+Sparse Index:  We assume 一页 （用来储存原本数据的） 对用有一个index 
+
+
+1 How many blocks are required to store this sparse index? (First-level sparse index)
+(Give your answer as a single integer.)
+
+
+这里 block就是 page
+1. Tuples/block, 1个block能存多少个 tuples     → Each block holds **4096 / 2048 = 2 tuples**
+2.  10M tuples 一共需要多少block.： numIndexTuples:   10M/2 = 5M.   
+3. A sparse index has **one entry per data block**, so it needs **5,000,000 index entries**.
+4. IndexTuples/block: 一block 能够装多少index   4096/20 = 204 
+5. 一共需要多少 block: 5M/204 =24510 
 
 ---
 
 2 How many blocks are required for storing a second-level sparse index if the first-level index is also sparse?
 
-24510 需要多少个 block  = 12265
-12265/204 = 121
+If the first-level index is also sparse, then the second-level index has 1 entry per block of the first-level index.
+
+Number of first-level index blocks = 24510.  So second-level index has 24510 entries.
+Blocks for second-level sparse index: 24510/204 = 121
 
 
 ## 11.2 ##
@@ -411,12 +434,13 @@ Index properties:
 - The size of a pointer to a block is 8 bytes.
 - Index entries do not span blocks on disk.
 
+----
+
 1 **How many blocks are required to store this dense index?**
-
 one disk block can contains 8192/512 tuple = 16
-
 one disk block can contains 8192/12 indexTuple = 682 
-**How many blocks are required to store this dense index?** 10M/682  ≈14664
+
+10M/682  ≈14664
 
 
 
