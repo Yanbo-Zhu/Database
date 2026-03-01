@@ -87,8 +87,11 @@ More complex for more than two possible fragments
 
 ### 1.4.1 Pointer Swizzling
 
-...map block references from the database address space to the virtual memory space
+==Pointer swizzling and unswizzling are used to.map block references from the database address space to the virtual memory space==
 就是用 pointer in Memory 取代 id_nummer in disk when load data form disk the momery 
+
+
+
 
 "In computer science, pointer swizzling is the conversion of references based on name or position to direct pointer references. It is typically performed during the deserialization (loading) of a relocatable
 object from disk, such as an executable file or pointer-based data structure. The reverse operation, replacing pointers with position-independent symbols or positions, is sometimes referred to as unswizzling, and is performed during serialization (saving)."
@@ -117,6 +120,17 @@ Record Deletion
 # 2 Data Layouts:
 ## 2.1 Row- and Column-Layout
 
+Row stores have high tuple reconstruction costs.  false 
+Disk access of analytical queries is reduced when using column stores.  wahr 
+Column stores, in general, yield better performance when doing point queries (e.g., reading a single tuple) compared to row stores. false
+Vertical partitioning aims at reducing the I/O cost for every single incoming query.  Falsch
+
+  
+
+
+
+
+
 Linearizing Tuples 
 ### 2.1.1 N-ary Storage Model (NSM)   Column-Layout
 
@@ -140,6 +154,14 @@ Linearizing Tuples
 
 
 ### 2.2.1 Fractured Mirrors
+
+Which of the following statements is true for "fractured mirroring"?
+
+The data is mirrored using the RAID technique for replicating data for enhanced fault tolerance in case of broken disks.
+The data is replicated, twice in row layout (NSM) and twice in column layout (DSM) format, with the goal of handling disk failures。
+The data is stored twice, once in row layout (NSM) and once in column layout (DSM) format to adaptively pick the suitable layout depending on the workload.  (wahr)
+The data is stored once, but some attributes are stored in row layout (NSM) and some in column layout (DSM).
+
 
 It can handle both OLAP and OLTP workloads
 It requires twice storage space

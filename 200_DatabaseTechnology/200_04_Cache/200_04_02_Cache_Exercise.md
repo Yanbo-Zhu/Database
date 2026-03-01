@@ -2,7 +2,6 @@
 # 1 Caching
 
 **Question:** What are the benefits of caching?
-
 - Reduced disk I/O
 - Faster reads
 - Faster writes
@@ -12,7 +11,6 @@
 # 2 Buffer Manager
 
 What are the steps for Buffer Manager lookups?
-
 1. evict page . when Cache is full
 2. only if dirty, the entry is modified, we need  cache update also in main momery
 3. writeQueue(): process it sequentielly 
@@ -31,7 +29,6 @@ What are the steps for Buffer Manager lookups?
 Let’s take a look at the following example. We are adding up all the numbers in a range by using sum function, and then caching the result for that input.
 
 Here, we are using a type of caching called [memoization](https://en.wikipedia.org/wiki/Memoization) to keep the result of the function in cache, in case if it is going to be called again with the same input.
-
 - We first run the function with range `[0, 10m]`
 - Then we run the function again with the same input.
 - Finally, we run the function with range `[0, 15m]`
@@ -84,11 +81,40 @@ print(
 3.039836883544922e-06
 0.6597890555858612
 
+让我们来看看下面的例子。我们通过使用 `sum` 函数来累加一个范围内的所有数字，然后针对该输入缓存计算结果。
+
+这里，我们使用了一种称为 **[记忆化](https://en.wikipedia.org/wiki/Memoization)** 的缓存技术，将函数的计算结果保存在缓存中，以备后续使用相同的输入再次调用该函数。
+-   我们首先使用范围 `[0, 10m]` 运行该函数。
+-   然后，我们使用相同的输入再次运行该函数。
+-   最后，我们使用范围 `[0, 15m]` 运行该函数。
+
+**问题：** 如果要你比较，你预计这三次调用（t1， t2, t3）的运行时间会是什么样？
+
+
+为了准确回答这个问题，我们需要理解"记忆化"的核心机制，这在上面的维基百科链接中有详细解释。简单来说，它就像一个"记住"计算结果的小助手：
+
+1.  **首次调用 (t1)：** 这是最耗时的一次。系统需要实际执行从 0 到 1千万的累加计算，并将结果 `sum(0,10m)` 存储在缓存中。
+2.  **第二次调用 (t2)：** 这是最快的一次。由于输入范围与 t1 完全相同，系统直接从缓存中取出之前计算好的结果并返回，无需任何重复计算。
+3.  **第三次调用 (t3)：** 这次的时间介于 t1 和 t2 之间。输入范围扩大到了 1.5千万，它无法直接使用 t1 的完整结果。但通过记忆化（如维基百科中阶乘的例子），它可以利用 t1 已经计算好的 `[0, 10m]` 的结果，只需要在此基础上计算 `(10m, 15m]` 这部分即可。
+
+
+因此，三次调用的运行时间对比预期如下：
+
+*   **t1 (首次，范围 [0, 10m])：最慢**
+    *   **原因：** 执行完整的、昂贵的累加计算。
+*   **t2 (再次，相同范围 [0, 10m])：最快**
+    *   **原因：** 缓存命中，直接返回结果，计算时间为接近零。
+*   **t3 (新范围 [0, 15m])：中等**
+    *   **原因：** 部分缓存命中。只需计算增量部分 `(10m, 15m]` 的累加，然后与已缓存的结果相加，比完全重新计算快得多。
+
+这种模式完美体现了记忆化的精髓：**用空间（存储结果）换时间（避免重复计算）**。你提供的维基百科链接中也提到，这是一种典型的**运行时优化**，对于像示例中 `sum` 这样具有**引用透明性**（相同输入永远产生相同输出）的函数尤其有效。
+
+希望这个解释能帮助你清晰地理解记忆化带来的性能差异。如果你对其他缓存策略（如LRU、LFU）与记忆化的异同感兴趣，我们也可以继续探讨。
+
 
 # 4 Eviction
 
 When there is no space in cache, we need to evict some data to replace it with the new ones.
-
 There a varying eviction methods to choose the next page in the cache for replacement.
 
 **Question:** When to use LRU, and when to use LFU?
@@ -96,7 +122,7 @@ There a varying eviction methods to choose the next page in the cache for replac
 ![[Pasted image 20251109113529.png]]
 
 LRU: Good if you access data in a burst and then forget it 
-LFU: Good if parts are often accessed icer and over again
+LFU: Good if parts are often accessed  and over again
 
 
 
@@ -155,9 +181,7 @@ Let’s try the same example with the same input, but now with LRU as eviction m
 # 7 Least Frequently Used (LFU)
 
 Let’s try the same example with the same input, but now with LFU as eviction method.
-
 **a)** How many cache hits?
-
 **b)** How many cache misses?
 
 ```
@@ -244,7 +268,7 @@ What if we use CLOCK (Second Chance) algorithm instead?
 # 9 Quiz 1: Storage, Data Layouts, Caching
 
 
-## 9.1 
+## 9.1 FIFO
 
 
 The cache in the system can hold 3 pages in total and is initially empty. Consider the following sequence of page requests to the cache: 15, 4, 6, 15, 10, 11, 6, 9, 12, 1
@@ -252,40 +276,33 @@ The cache in the system can hold 3 pages in total and is initially empty. Consid
 How many cache hits will occur if the cache replacement policy is FIFO?
 
 Additional information:
-
 Cache Hit - A cache hit occurs when a requested page is found in the cache.
-
 Cache Miss - A cache miss occurs when a requested page is not found in the cache. Writing on an empty cache is also considered as a cache miss.
 
-
-
-|Step|Requested Page|Cache Before|Hit/Miss|Cache After (FIFO order)|
-|---|---|---|---|---|
-|1|15|[ ]|❌ Miss|[15]|
-|2|4|[15]|❌ Miss|[15, 4]|
-|3|6|[15, 4]|❌ Miss|[15, 4, 6]|
-|4|15|[15, 4, 6]|✅ **Hit**|[15, 4, 6]|
-|5|10|[15, 4, 6]|❌ Miss → evict oldest (15)|[4, 6, 10]|
-|6|11|[4, 6, 10]|❌ Miss → evict oldest (4)|[6, 10, 11]|
-|7|6|[6, 10, 11]|✅ **Hit**|[6, 10, 11]|
-|8|9|[6, 10, 11]|❌ Miss → evict oldest (6)|[10, 11, 9]|
-|9|12|[10, 11, 9]|❌ Miss → evict oldest (10)|[11, 9, 12]|
-|10|1|[11, 9, 12]|❌ Miss → evict oldest (11)|[9, 12, 1]|
+| Step | Requested Page | Cache Before | Hit/Miss                   | Cache After (FIFO order) |
+| ---- | -------------- | ------------ | -------------------------- | ------------------------ |
+| 1    | 15             | [ ]          | ❌ Miss                     | [15]                     |
+| 2    | 4              | [15]         | ❌ Miss                     | [15, 4]                  |
+| 3    | 6              | [15, 4]      | ❌ Miss                     | [15, 4, 6]               |
+| 4    | 15             | [15, 4, 6]   | ✅ **Hit**                  | [15, 4, 6]               |
+| 5    | 10             | [15, 4, 6]   | ❌ Miss → evict oldest (15) | [4, 6, 10]               |
+| 6    | 11             | [4, 6, 10]   | ❌ Miss → evict oldest (4)  | [6, 10, 11]              |
+| 7    | 6              | [6, 10, 11]  | ✅ **Hit**                  | [6, 10, 11]              |
+| 8    | 9              | [6, 10, 11]  | ❌ Miss → evict oldest (6)  | [10, 11, 9]              |
+| 9    | 12             | [10, 11, 9]  | ❌ Miss → evict oldest (10) | [11, 9, 12]              |
+| 10   | 1              | [11, 9, 12]  | ❌ Miss → evict oldest (11) | [9, 12, 1]               |
 
 |Total requests|10|
 |---|---|
 |Cache hits|**2**|
 |Cache misses|8|
 
-## 9.2 ##
+## 9.2 FIFO
 The cache in the system can hold 3 pages in total and is initially empty. Consider the following sequence of page requests to the cache: 15, 4, 6, 15, 9, 11, 6, 12, 15, 6
 
 **How many cache misses will occur if the cache replacement policy is FIFO?**
-
 Additional information:
-
 **Cache Hit** - A cache hit occurs when a requested page is **found** in the cache.
-
 **Cache Miss** - A cache miss occurs when a requested page is **not found** in the cache. Writing on an empty cache is also considered as a cache miss.
 
 |Step|Requested Page|Cache Before|Hit/Miss|Cache After (FIFO order: oldest → newest)|
@@ -308,7 +325,7 @@ Additional information:
 | **Cache misses** | 8              |
 
 
-## 9.3 ##
+## 9.3 LRU
 
 The cache in the system can hold 3 pages in total and is initially empty. Consider the following sequence of page requests to the cache: 15, 4, 6, 15, 9, 11, 6, 9, 12, 1
 
@@ -362,11 +379,9 @@ Assume that when a page is accessed and it is already in the cache, its referenc
 
 
 Also assume that in the first figure; red box indicates that the reference bit is set to 1, and orange box indicates that reference bit is set to 0.
-
 - **红色框（red box）** 表示该页的引用位 = 1 **橙色框（orange box）** 表示该页的引用位 = 0
 
 Consider the following sequence of page requests to the cache:
-
 > 20, 15, 36, 6, 42, 3, 61, 89
 
 Fill in the pages of the clock with regards to the page numbers after the last request has been completed (after all the pages in the series are accessed).
@@ -454,3 +469,11 @@ Requests: 20, 15, 36, 6, 42, 3, 61, 89
     (hand now sits on **42**)
 
 ![[Pasted image 20251109133356.png]]
+
+
+
+![](image/Pasted%20image%2020260301124504.png)
+
+![](image/Pasted%20image%2020260301124514.png)
+
+

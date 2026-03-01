@@ -1,4 +1,6 @@
 
+![](image/Pasted%20image%2020260301105930.png)
+
 
 Storage: Memory Hierarchy, Disks, Efficient Disk Operations, Access Acceleration, Disk Crashes, RAID
 
