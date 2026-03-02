@@ -1,5 +1,6 @@
 
 # 1 Introduction
+
 ## 1.1 What is Query Optimization in the context of DBMSs?
 solution
 
@@ -20,10 +21,9 @@ Physical Query Plan
 ![](image/Pasted%20image%2020260121171258.png)
 
 solution
-
 Not generally valid, projection may remove attributes necessary for selection predicate
-
 Valid, push predicates to the correct relations
+
 
 # 2 Logical Plan Optimization / Heuristics
 
@@ -70,9 +70,11 @@ ActorsInMovies: 10K rows
 Reviews: 50K rows
 
 
-Consider the following SQL Query:
- Return the ratings of the movies that Christian Bale played in and that happened after 2010.
+----
 
+Consider the following SQL Query:
+Return the ratings of the movies that Christian Bale played in and that happened after 2010.
+ 
 ```
 SELECT m.Title, a.role AS Actor, r.Rating
 FROM Movies m, ActorsInMovies a, Reviews r
@@ -81,6 +83,7 @@ AND m.MovieID = r.MovieID;
 AND m.ReleaseYear >= 2010
 AND a.Name = 'Christian Bale'
 ```
+
 
 ---
 1 
@@ -257,7 +260,7 @@ plt.show()
 ![](image/Pasted%20image%2020260121194119.png)
 
 
-## 3.3 Selection with Conjunction
+## 3.3 Selection with Conjunction (and)
 
 ```
 SELECT Title, Genre, ReleaseYear
@@ -271,7 +274,7 @@ WHERE Genre = 'Sci-Fi' AND ReleaseYear > 2000;
 ![](image/Pasted%20image%2020260121194221.png)
 
 
-## 3.4 Selection with Disjunction
+## 3.4 Selection with Disjunction （or）
 
 ```
 SELECT Title, Genre, ReleaseYear
@@ -281,7 +284,7 @@ WHERE Genre = 'Drama' OR ReleaseYear < 1995;
 
 ![](image/Pasted%20image%2020260121194339.png)
 
-# 4 Join Ordering / Cost-based Optimization
+# 4 Join Ordering / Cost-based Optimization / example 2
 
 Santa's workshop is bustling with activity as Christmas Eve approaches. Santa gathers his most trusted elves and says:
 
@@ -363,9 +366,20 @@ FROM
 
 
 
-# 5 Join Ordering / Cost-based Optimization 2
+# 5 Join Ordering / Cost-based Optimization / example 2
 
 ![](image/Pasted%20image%2020260121203412.png)
+
+
+| Table     | Cardinality | Distinct Values for Join Attribute |
+| --------- | ----------- | ---------------------------------- |
+| Children  | 1000        | 500 (cid)                          |
+| Wishlists | 10000       | 100 (cid), 200 (pid)               |
+| Presents  | 2000        | 100 (pid), 1000 (fid)              |
+| Factories | 500         | 200(fid)                           |
+
+
+
 
 
 
@@ -752,11 +766,56 @@ V_Y(b) \approx V(R,b) = 1000
 \[
 \boxed{12500}
 \]
-## 6.4 Cardinality Estimation
+## 6.4 Join Ordering / Cost-based Optimization 
+
+
+![](image/Pasted%20image%2020260124152419.png)
+
+- 所有关系元组数均为 10001000。
+    
+- R(a,d)R(a,d)，V(R,a)=20V(R,a)=20，V(R,d)=250V(R,d)=250。
+    
+- S(b,c)S(b,c)，V(S,b)=250V(S,b)=250，V(S,c)=1000V(S,c)=1000。
+    
+- T(a,c)T(a,c)（本题未直接用到）。
+    
+- U(b,d)U(b,d)，V(U,b)=10V(U,b)=10，V(U,d)=500V(U,d)=500。
+
+---
+
+**步骤 1：S⋈RS⋈R**
+
+由于无公共属性，是笛卡尔积：
+
+∣S⋈R∣=∣S∣×∣R∣=1000×1000=106∣S⋈R∣=∣S∣×∣R∣=1000×1000=106
+
+此时关系 X=S⋈RX=S⋈R 有属性 (b,c,a,d)(b,c,a,d)，大小 106106。
+
+![](image/Pasted%20image%2020260124152749.png)
+
+![](image/Pasted%20image%2020260124152802.png)
+
+## 6.5 Join Ordering / Cost-based Optimization 
+
+![](image/Pasted%20image%2020260124152928.png)
+
+
+![](image/Pasted%20image%2020260124153250.png)
+
+
+![](image/Pasted%20image%2020260124153301.png)
+
+![](image/Pasted%20image%2020260124153318.png)
+
+
+## 6.6 Cardinality Estimation
+
+
+### 6.6.1 
 
 ![](image/Pasted%20image%2020260124150305.png)
 
-**“如果一个属性与常数相等比较（例如 σf=15σf=15​），那么满足条件的元组比例是 1/V(R,f)1/V(R,f)，其中 V(R,f)V(R,f) 是该属性在关系 R 中的不同值个数。”**
+**"如果一个属性与常数相等比较（例如 σf=15​），那么满足条件的元组比例是 1/V(R,f)，其中 V(R,f) 是该属性在关系 R 中的不同值个数。"**
 
 
 先选 \( \sigma_{s_2=84}(S) \)：  
@@ -772,9 +831,7 @@ R 共 800 条，外键 \( s_1 \) 引用 S 的主键 \( s_1 \)，假设均匀分�
 
 **答案：** 80
 
-
 因为这里有一个**隐含的均匀分布假设**：
-
 1. **S.s₁ 是主键**（外键引用的一般假设），所以 S 有 300 个不同的 s₁ 值。
 2. **选择 σₛ₂=₈₄(S)** 选出了 30 个 S 的元组，因为 V(S,s₂)=10，数据均匀 ⇒ 300/10=30 个。
 3. 这 30 个元组的 s₁ 值各不相同（因为 s₁ 是主键）。
@@ -782,12 +839,8 @@ R 共 800 条，外键 \( s_1 \) 引用 S 的主键 \( s_1 \)，假设均匀分�
 5. 所以，选出的 30 个 s₁ 值占 S 所有 s₁ 值的比例 = \( \frac{30}{300} = \frac{1}{10} \)。
 6. 因此，R 中也有 \( \frac{1}{10} \) 的元组的 s₁ 值落在这 30 个值之中，从而匹配成功。
 
----
 
 所以匹配数 = \( 800 \times \frac{1}{10} = 80 \)。
-
-
-
 
 
 
@@ -804,7 +857,7 @@ R 共 800 条，外键 \( s_1 \) 引用 S 的主键 \( s_1 \)，假设均匀分�
 - \( S(s_1, s_2) \)：300 个元组，  
   \( V(S, s_2) = 10 \)。
 
-- 常值选择谓词满足率：如果形如 \( \sigma_{s_2 = 84} \)，假设是“属性等于常数”，则满足的元组比例为 \( 1/V(S, s_2) \) （**这里 \( s_2 \) 是 S 的属性**）。
+- 常值选择谓词满足率：如果形如 \( \sigma_{s_2 = 84} \)，假设是"属性等于常数"，则满足的元组比例为 \( 1/V(S, s_2) \) （**这里 \( s_2 \) 是 S 的属性**）。
 
 ---
 
@@ -837,7 +890,7 @@ S 中不同的 \( s_1 \) 值个数：
 如果 \( s_1 \) 是 S 的主键，则 \( V(S, s_1) = 300 \)，那么 \( s_2=84 \) 的 30 个元组将有不同的 \( s_1 \) 值（因为每个 \( s_1 \) 唯一）。  
 但若 \( s_1 \) 不是键，则可能有重复。
 
-从“外键”常见的假设是 \( S.s_1 \) 是主键（或候选键），所以 \( V(S, s_1) = T(S) = 300 \)，即 S 的 \( s_1 \) 值各不相同。
+从"外键"常见的假设是 \( S.s_1 \) 是主键（或候选键），所以 \( V(S, s_1) = T(S) = 300 \)，即 S 的 \( s_1 \) 值各不相同。
 
 因此 \( \sigma_{s_2=84}(S) \) 的 30 个元组有 30 个不同的 \( s_1 \) 值。
 
@@ -873,49 +926,7 @@ T(R \bowtie \sigma_{s_2=84}(S)) = T(R) \times \frac{1}{10} = 800 \times \frac{1}
 
 
 
-## 6.5 Join Ordering / Cost-based Optimization 
-
-
-![](image/Pasted%20image%2020260124152419.png)
-
-- 所有关系元组数均为 10001000。
-    
-- R(a,d)R(a,d)，V(R,a)=20V(R,a)=20，V(R,d)=250V(R,d)=250。
-    
-- S(b,c)S(b,c)，V(S,b)=250V(S,b)=250，V(S,c)=1000V(S,c)=1000。
-    
-- T(a,c)T(a,c)（本题未直接用到）。
-    
-- U(b,d)U(b,d)，V(U,b)=10V(U,b)=10，V(U,d)=500V(U,d)=500。
-
----
-
-**步骤 1：S⋈RS⋈R**
-
-由于无公共属性，是笛卡尔积：
-
-∣S⋈R∣=∣S∣×∣R∣=1000×1000=106∣S⋈R∣=∣S∣×∣R∣=1000×1000=106
-
-此时关系 X=S⋈RX=S⋈R 有属性 (b,c,a,d)(b,c,a,d)，大小 106106。
-
-![](image/Pasted%20image%2020260124152749.png)
-
-![](image/Pasted%20image%2020260124152802.png)
-
-## 6.6 Join Ordering / Cost-based Optimization 
-
-![](image/Pasted%20image%2020260124152928.png)
-
-
-![](image/Pasted%20image%2020260124153250.png)
-
-
-![](image/Pasted%20image%2020260124153301.png)
-
-![](image/Pasted%20image%2020260124153318.png)
-
-
-# 7 6.4 Cardinality Estimation
+### 6.6.2 ###
 
 ![](image/Pasted%20image%2020260124195815.png)
 
@@ -975,9 +986,7 @@ T(R \bowtie \sigma_{s_2=84}(S)) = T(R) \times \frac{1}{10} = 800 \times \frac{1}
 ![](image/Pasted%20image%2020260124195907.png)
 
 
-## 7.1 Cardinality Estimation
-
-
+### 6.6.3 
 
 
 
@@ -988,3 +997,6 @@ T(R \bowtie \sigma_{s_2=84}(S)) = T(R) \times \frac{1}{10} = 800 \times \frac{1}
 
 
 ![](image/Pasted%20image%2020260124200237.png)
+
+16 x 89 = 1424
+

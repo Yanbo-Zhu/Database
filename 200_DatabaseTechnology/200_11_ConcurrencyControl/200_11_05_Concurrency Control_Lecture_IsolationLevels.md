@@ -9,30 +9,24 @@
 
 
  **核心问题**
-
 - **隔离性损害并发性**  
     严格的隔离级别（如可串行化）通过锁机制防止数据异常，但限制了并发操作。
-    
 - **阻塞严重影响事务响应时间**  
     锁竞争导致事务长时间等待，延长响应时间。
-    
 - **两阶段锁（2PL）加剧锁持有时间**  
     2PL 要求在事务结束前持续持有锁，增加了锁竞争的可能性。
-    
 
  **现实需求**
 - **并非所有应用都需要完全的可串行化**  
     某些应用可以容忍一定程度的“数据不一致”（如一些读多写少的分析场景）。
 - **灵活性与性能需求**  
     在不同业务场景下，可以在**正确性**和**性能**之间进行权衡。
-    
 
 **解决方案：隔离级别**
 
 通过定义不同的**隔离级别（Degrees of Isolation）**，在**可控范围内**用隔离性换取并发性：
 1. 降低隔离级别 → 提高并发性（减少锁竞争）
 2. 提高隔离级别 → 增强隔离性（减少数据异常）
-    
 
 这样，应用程序可以根据自身对数据一致性的要求选择合适的隔离级别，在保证业务正确性的同时优化性能。
 
@@ -352,7 +346,7 @@ Solution:
 | **Isolation Level**  | Lost Update                                | **Dirty Reads** | **Non-Repeatable Reads/Fuzzy Read** | **Phantom Reads** |
 | -------------------- | ------------------------------------------ | --------------- | ----------------------------------- | ----------------- |
 | **Read Uncommitted** | prevented                                  | Not prevented   | Not prevented                       | Not prevented     |
-| **Read Committed**   | Not prevented                              | Prevented       | Not prevented                       | Not prevented     |
+| **Read Committed**   | Prevented                                  | Prevented       | Not prevented                       | Not prevented     |
 | **Repeatable Read**  | **Prevented** (by locking rows for update) | Prevented       | Prevented                           | Not prevented     |
 | **Serializable**     | Prevented                                  | Prevented       | Prevented                           | Prevented         |
 

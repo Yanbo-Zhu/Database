@@ -1,15 +1,11 @@
 
 
-# 1 Question 1
+# 1 Question 1 relational operators
 
 Given the following relational operators:
-
 Selection
-
 Projection
-
 Join
-
 Aggregation
 
 Explain their functionality and associated physical implementations.
@@ -51,25 +47,12 @@ Solution
 
 ![](image/Pasted%20image%2020260121145621.png)
 
----
 
-Solution
-- Physical query tree 2 (sort-based execution):
-    - Selection: Sequential Scan (scans the entire table).
-    - Join: Sort-Merge Join (requires sorted input).
-    - Aggregation: Sort-based Aggregation (sorts data before aggregation).
-    - Projection: Tuple Reconstruction.
-
-
-![](image/Pasted%20image%2020260121145720.png)
-
-# 3 Question 3
+# 3 Question 3 **pipelined** operator and **blocking** operator.
 
 Explain what is a **pipelined** operator and what is a **blocking** operator.
 
-
 Solution
-
 - Pipelined: The operator can start producing output tuples as soon as it sees an input tuple, without waiting for the entire input to be processed.
     - Example: Hash Probe, Selection.
 - Blocking: The operator has to process all input tuples before it can start producing output tuples.
@@ -77,6 +60,43 @@ Solution
 - Some operators combine both pipelinable and blocking sub-operators, e.g. Joins:
     - Blocking: The build phase (building the hash table).
     - Pipelined: The probe phase (matching tuples from the hash table).  探索阶段 
+
+
+
+**解释什么是流水线操作符和阻塞操作符**
+
+**解答**
+
+- **流水线操作符**：操作符一旦看到输入元组就可以开始产生输出元组，无需等待整个输入处理完毕。
+    - 例如：哈希探测、选择操作。
+
+- **阻塞操作符**：操作符必须处理完所有输入元组后才能开始产生输出元组。
+    - 例如：排序、分组、连接（哈希连接的构建阶段）。
+
+- 有些操作符同时包含可流水线和阻塞的子操作，例如连接操作：
+    - **阻塞**：构建阶段（构建哈希表）
+    - **流水线**：探测阶段（从哈希表中匹配元组）
+
+
+**补充说明：**
+
+**流水线操作符的好处：**
+- 减少内存占用
+- 允许操作并行执行
+- 响应更快（可以立即看到部分结果）
+
+**阻塞操作符的问题：**
+- 需要物化整个中间结果
+- 增加内存压力
+- 可能导致查询延迟增加
+
+**连接操作的二阶段特性：**
+```
+哈希连接：
+1. 构建阶段（阻塞）：读取内表，构建哈希表
+2. 探测阶段（流水线）：读取外表，实时探测输出
+```
+这种设计在保持高性能的同时，最小化阻塞影响。
 
 
 # 4 Question 4
@@ -204,7 +224,7 @@ for x in sort_des:
 ![](image/Pasted%20image%2020260121150810.png)
 
 
-# 5 Question 5
+# 5 Question 5  pipelining and blocking operators
 
 Given two SQL queries and their execution plans, identify the pipelining and blocking operators for each, and describe why it is classified like this.
 
@@ -262,14 +282,57 @@ Output (Projection: T1.id, avg_value)
     - Sort on [T1.id](http://t1.id/) and [T2.id](http://t2.id/): This is a blocking operation because both input tables must be fully sorted before the merge join operator can process this data.
 
 
+
+---
+
+**查询 2**
+
+**SQL：**
+```sql
+SELECT T1.id, AVG(T2.value) as avg_value
+FROM T1
+JOIN T2 ON T1.id = T2.t1_id
+GROUP BY T1.id;
+```
+
+**查询执行树：**
+```
+输出（投影：T1.id, avg_value）
+└── 基于排序的聚合（按 T1.id 分组，AVG(T2.value) 作为 avg_value）
+    └── 合并连接
+        ├── 按 T1.id 排序
+        |   └── 顺序扫描 T1
+        └── 按 T2.id 排序
+            └── 顺序扫描 T2
+```
+
+- **流水线操作：**
+    - **T1 和 T2 的顺序扫描**：在扫描输入的同时产生输出。
+    - **合并连接**：在合并 T1 和 T2 的元组时产生输出。
+
+- **阻塞操作：**
+    - **按 T1.id 和 T2.id 排序**：这是阻塞操作，因为两个输入表必须完全排序后，合并连接操作符才能处理这些数据。
+
+---
+
+**执行流程分析：**
+
+1. **两个顺序扫描**（流水线）：开始读取数据
+2. **两个排序**（阻塞）：必须读完所有数据才能排序完成
+3. **合并连接**（流水线）：一旦排序完成，可以边合并边输出
+4. **基于排序的聚合**（部分阻塞）：需要先接收所有连接结果才能计算平均值
+
+**关键点：**
+- 排序是整个查询的**主要阻塞点**
+- 合并连接本身是流水线的，但**依赖前序的阻塞操作**
+- 聚合需要等待所有连接结果，所以也是阻塞的
+
+
 # 6 Question 6
 
 How does each processing model handle tuples within a query operator?
-
 - Volcano Model
-    
 - Materialization Model
-    
 - Vectorization Model
 
 Solution
@@ -399,11 +462,8 @@ WHERE e.age > 35;
  **1. 火山模型（Tuple-at-a-time / Volcano）**
 
 - 每个算子一次处理一个元组，通过 `next()` 调用传递。
-    
 - **Scan**：被调用 500,000 次（每个元组一次）。
-    
 - **Filter**：被调用 500,000 次（每个元组一次）。
-    
 - **Aggregate**：调用次数取决于通过 filter 的元组数量。  
     通过 filter 的元组数 = 500,000 × 0.5 = 250,000。  
     Aggregate 每次收到一个元组时更新一次 MIN，所以是 **250,000 次**。
@@ -413,20 +473,16 @@ WHERE e.age > 35;
 **物化模型（Operator-at-a-time / Materialization）**
 
 - 每个算子一次性处理全部输入，并物化完整中间结果。
-    
 - **Scan**：调用 **1 次**，读取全表并输出所有 500,000 个元组。
-    
 - **Filter**：调用 **1 次**，接收 500,000 个元组，输出 250,000 个元组（完全物化）。
-    
 - **Aggregate**：调用 **1 次**，接收 250,000 个元组，计算 MIN。
 
 
-**向量化模型（Vector-at-a-time / Vectorization）**
+---
 
+**向量化模型（Vector-at-a-time / Vectorization）**
 - 每次处理一批元组，批量大小 = 2000 个元组。
-    
 - 批次数 = 总行数 / 批量大小（向上取整）。
-    
 - 需要按照流水线传播来计算各算子的调用次数。
 
 
@@ -441,14 +497,22 @@ Filter 需要输出批次给 Aggregate，但这里的 Aggregate 只需要一个�
 Filter 不会改变批次数（它过滤掉元组，但输出的批次仍然是连续的，除非整批都被过滤掉才会产生空批，但向量化实现中通常还是会传一个空批或者跳过？）。
 
 实际上，更常见的设计：
-
 - Scan 输出 250 批 → Filter 对每批应用条件，输出可能是较少的元组，但批次仍以相同批次数量传递给 Aggregate，只是某些批次可能为空。
-    
 - 因此 Filter 调用次数 = 接收批次数 = 250 次。
-    
-- Aggregate 调用次数也等于 Filter 输出批次数 = 250 次（因为向量化 Aggregate 每批更新一次局部 MIN，最后合并）。  不应该这样计算
-    - 500000/2/2000  = 125
+- Aggregate 调用次数也等于 Filter 输出批次数 = 250 次（因为向量化 Aggregate 每批更新一次局部 MIN，最后合并）。 这是错的  不应该这样计算
+    - 正确的算法是 500000/2/2000  = 125
 
+----
+
+Aggregate 调用次数
+然而，有一种常见优化：若某批 Filter 输出为空（整批无满足条件元组），可以跳过调用 Aggregate，但在这里不会整批空（除非巧合整批 age≤35，概率很低，0.5 选择性很难整批空）。所以 Aggregate 调用次数 ≈ 250 次。
+但你给的答案写着 125 次，这可能是把 Filter 输出元组数 250,000 行 / batch size 2000 的 125 批 直接算作了 Aggregate 的调用次数。
+
+但你给的答案写着 125 次，这可能是把 Filter 输出元组数 250,000 行 / batch size 2000 的 125 批 直接算作了 Aggregate 的调用次数。
+
+但这样 Filter 就不只是"对输入每批过滤"而是"过滤并重新分块"，这需要 Filter 内部有缓冲功能（额外逻辑），在向量化模型中不常见（通常 Filter 保持批次数相同）。
+
+---
 Scan:     250 次
 Filter:   250 次
 Aggregate: 125 次

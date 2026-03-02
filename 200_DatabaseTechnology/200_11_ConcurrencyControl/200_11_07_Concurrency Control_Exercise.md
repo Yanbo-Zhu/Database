@@ -16,9 +16,7 @@ Solution
 ## 1.2 Which of the ACID principles are directly related to Concurrency Control?
     
 Solution
-
 Isolation and Consistency
-
 “How can we isolate transactions from each other, and ensure consistent database state?”
 
 # 2 Isolation Levels
@@ -111,6 +109,11 @@ Solution
 - A schedule is _interleaved_ if operations of the multiple transactions execute in a non-sequential manner.
 - A schedule for a set of TX T is called _serializable_ if its result is equal to the result of a serial schedule of T.
 
+如果一个调度只执行完一个事务的所有操作后才开始执行另一个事务，则该调度是串行的。或者，如果一个调度中来自不同事务的操作没有交错，则该调度是串行的。
+如果一个调度中多个事务的操作以非顺序方式执行，则该调度是交错的。
+如果一个调度对于事务集合 T 的结果等于 T 的某个串行调度的结果，则该调度称为可串行化的。
+
+
 ## 3.2 Draw a _serial schedule_, an _interleaved schedule_ and a _serializable schedule_.
 
 Schedule 1: Serial
@@ -134,11 +137,8 @@ Two operations are said to be conflicting if all conditions are satisfied:
 
 
 Two operations are said to be conflicting if all conditions are satisfied:
-
 - They belong to different transactions
-    
 - They operate on the same data item
-    
 - At Least one of them is a write operation
 
 ![](image/Pasted%20image%2020260124095256.png)
@@ -149,26 +149,22 @@ Two operations are said to be conflicting if all conditions are satisfied:
 Solution
 
 - A conflict is a pair of operations in a schedule that if their order is changed, the behaviour of at least one TX changes
-    
 - Non-conflicting operations: When two operations operate on separate data items or the same data item but at least one of them is a read operation, they are said to be non-conflicting.
-    
 - **Conflict Equivalent** If a schedule S can be transformed into a schedule S´ by a series of swaps of non-conflicting instructions, we say that S and S´ are conflict equivalent. We say that a schedule S is conflict serializable if it is conflict equivalent to a serial schedule.
-    
 - A schedule is conflict-serializable if a conflict-equivalent serial schedule exists. Conflict serializable is a subset of serializable, so just because a schedule is conflict serializable does mean it is serializable.
 
-- **冲突**：调度中的一对操作，如果它们的顺序被改变，至少一个事务的行为会发生变化。
-
+- **冲突**：调度中的一对操作，如果它们的顺序被改变，至少一个事务的行为会发生变化
 - **非冲突操作**：当两个操作作用于不同的数据项，或作用于同一数据项但至少有一个是读操作时，称它们为非冲突操作。
-    
 - **冲突等价**：如果调度 S 可以通过一系列非冲突指令的交换转变为调度 S´，则称 S 和 S´ 是冲突等价的。如果一个调度与某个串行调度冲突等价，则称该调度是**冲突可串行化**的。
-    
 - 如果一个调度存在冲突等价的串行调度，则该调度是冲突可串行化的。冲突可串行化是可串行化的子集，因此一个调度是冲突可串行化的，并不直接意味着它是可串行化的（在广义上）——但**冲突可串行化是可串行化的充分条件**（在并发控制理论中通常认为冲突可串行化 ⇒ 可串行化，除非有边缘情况如谓词读写）。
 
 ![](image/Pasted%20image%2020260124095314.png)
 
 # 4 Locking
 
+
 ## 4.1 
+
 1. Consider the following two transactions.
     1. Add lock and unlock instructions to transactions T1 and T2 so that they observe the two-phase locking protocol.
     2. Can the execution of these transactions result in a deadlock?
@@ -278,11 +274,8 @@ T1: BEGIN                   T2:
 **死锁条件满足**：
 
 1. **互斥**：锁是互斥资源。
-    
 2. **持有并等待**：T1 持有 A 锁等 B 锁，T2 持有 B 锁等 A 锁。
-    
 3. **不可剥夺**：锁不能强行剥夺。
-    
 4. **循环等待**：T1 → B（被 T2 持有） → T2 → A（被 T1 持有） → T1。
 
 ## 4.2 Example with Lock Manager
@@ -295,11 +288,9 @@ T1: BEGIN                   T2:
 In the following tasks we used a simple database with a lock manager. Given two database objects, A and B, and two transactions T0 and T1.
 
 1. Design a 2PL-compliant schedule.
-    
 2. Design an illegal schedule.
-    
 3. Design a schedule with two transactions that leads to a deadlock.
-    
+
 
 Insert necessary locks to correct locations.
 
@@ -749,36 +740,24 @@ The following schedule is possible under strict two-phase locking (S2PL): R1(D),
 
 ## 5.6 Strict Two-phase locking and Snapshot Isolation
 
-Strict Two-phase locking allows more concurrency than Snapshot Isolation (SI).
+Strict Two-phase locking allows more concurrency than Snapshot Isolation (SI).   ->  false 
 
 **解释**：
 
 **严格两阶段锁（Strict 2PL）** 与 **快照隔离（Snapshot Isolation，SI）** 在并发性方面的比较：
 
 1. **Strict 2PL**：
-    
     - 读操作需要共享锁（S-lock），写操作需要排他锁（X-lock）。
-        
     - 锁保持到事务结束，因此：
-        
         - **读阻塞写**（如果事务持有 S 锁，其他事务无法获取 X 锁）。
-            
         - **写阻塞读**（如果事务持有 X 锁，其他事务无法获取 S 锁）。
-            
     - 容易导致阻塞和死锁，限制并发度。
-        
-2. **快照隔离（SI）**：
-    
+2. **快照隔离（SI）** 
     - 读操作基于事务开始时的数据快照，不需要加锁。
-        
     - 写操作在提交时检查写-写冲突（“先提交者获胜”规则）。
-        
     - 因此：
-        
         - **读不阻塞写**，**写不阻塞读**。
-            
         - 只有并发写同一数据项时才可能冲突导致中止。
-            
     - 在读多写少的场景下，并发度显著高于 Strict 2PL。
         
 
