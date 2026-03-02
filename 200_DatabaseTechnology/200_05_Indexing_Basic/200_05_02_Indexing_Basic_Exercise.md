@@ -363,7 +363,14 @@ MultiLevel Index:   index of index
 
 # 11 Quiz 2: Indexing
 
+
 ## 11.1 
+
+A sparse index does not have an entry for every row in the table.  -> Wahr
+
+
+
+## 11.2 
 
 Given the following properties:
 **Data file:** 
@@ -392,11 +399,6 @@ Sparse Index:  We assume 一页 （用来储存原本数据的） 对用有一�
 * Pointer size: 12 bytes 
 * Index entries do not span blocks
 
----
-Dense Index :  We assume we only have one index entry for each page 
-Sparse Index:  We assume 一页 （用来储存原本数据的） 对用有一个index 
-
-
 1 How many blocks are required to store this sparse index? (First-level sparse index)
 (Give your answer as a single integer.)
 
@@ -418,7 +420,7 @@ Number of first-level index blocks = 24510.  So second-level index has 24510 ent
 Blocks for second-level sparse index: 24510/204 = 121
 
 
-## 11.2 ##
+## 11.3 ##
 
 Given the following properties of the data file, the disk, and index structures.
 
@@ -436,7 +438,7 @@ Index properties:
 
 ----
 
-1 **How many blocks are required to store this dense index?**
+**How many blocks are required to store this dense index?**
 one disk block can contains 8192/512 tuple = 16
 one disk block can contains 8192/12 indexTuple = 682 
 

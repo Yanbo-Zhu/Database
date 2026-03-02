@@ -1,8 +1,29 @@
 
 # 1 Quiz
 
+## 1.1 
 
-## 1.1 extensible hash table
+
+A linear hash table searches the bucket array using the least significant bits.: True
+A linear hash table searches the bucket array using the most significant bits.: False
+
+
+An extensible hash table is optimized for an even distribution of data across blocks.: False
+可扩展哈希使用目录（directory）和桶共享策略来减少溢出。但优化目标主要是避免溢出和控制目录大小，而不是追求数据块之间完美均匀分布。
+实际上，如果数据分布不均匀，可能会导致多个指针指向同一个块（负载不均衡），而不是自动重新平衡。
+它的设计重点是保持访问路径长度短（只需一次目录查找），并不是优化块间的数据分布。
+
+An extensible hash table has a constant search cost.: True
+在可扩展哈希中，查找一个键：
+
+取哈希值的前 
+i 位（全局深度）作为目录索引；
+直接通过目录找到对应的桶指针；
+再读取桶中的内容（通常一个块）。
+不管桶有多大，或者目录多大，查找路径长度是常数（1 次目录查找 + 1 次块读取），不考虑溢出链（设计上应避免溢出）。
+所以搜索成本是常数 I/O 次数（假设没有溢出块）。
+
+## 1.2 extensible hash table
 
 Consider the following extensible hash table:
 
@@ -99,7 +120,15 @@ How does the hash table look after inserting key 0100?
 不能分到 10 或 11（这是目录项 1 的范围）
 
 
-## 1.2 extensible hash table
+---
+
+答案是 
+
+![](image/Pasted%20image%2020260302130823.png)
+
+
+
+## 1.3 extensible hash table
 
 When splitting a block in an extensible hash table and distributing keys into new blocks, one of the new blocks can be empty.  
 
@@ -155,7 +184,7 @@ Extensible Hashing 的主要目标是：
 
 
 
-## 1.3 linear hash table
+## 1.4 linear hash table
 
 1 A linear hash table searches the bucket array using the least significant bits.	
  ture  就是用的最低位 

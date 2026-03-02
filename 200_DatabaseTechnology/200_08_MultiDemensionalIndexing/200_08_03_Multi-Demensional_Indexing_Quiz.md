@@ -93,6 +93,18 @@ DW     : 000001
 
 ## 1.2 grid file 
 
+
+Given fact table Clicks(User, Session, Page, Position) with a grid file having the following partitions:
+
+User: 4 partitions
+Session: 3 partitions
+Page: 9 partitions
+After ingesting more data, one partition of the Page dimension is split to accommodate the extra data.
+
+How many buckets now exist in total?
+
+
+
 在 grid file 中，split 一个 partition = 把原来的一个分区拆成两个分区。
 
 因此 Page 分区数：
@@ -141,7 +153,10 @@ KD-tree 在不同深度按以下顺序选择维度：
 | **(128,54), (152,42)** | 110 ≤ Salary < 160 AND Age ≥ 35     |
 | **(210,74), (174,64)** | Salary ≥ 160 AND Age ≥ 35           |
 
-![](image/Pasted%20image%2020251212222346.png)
+
+最终是这样的 
+![](image/Pasted%20image%2020260302132108.png)
+
 
 ## 1.4 kd-tree,
 
