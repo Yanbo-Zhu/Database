@@ -8,11 +8,9 @@ Memory (Dram ):  For Updates, smaller capacity, fast, more expensive, volatile
 
 ## 1.2 What are transactions?
 
-
 Sequences of logically related operations in a database that run as a single unit 
 
 ## 1.3 What are the fundamental properties of transactions?
-
 
 1. Run atomically, either Commit or Abort
 2. DB is consistent before and after the txn (to the user)
@@ -44,13 +42,11 @@ Butter page data stored in Pages Between Disk and main momery
 
 # 2 Buffer Mangement (Steal and Force )
 
+flush into disk 
 
 STEAL: allow uncommitted txn to overwrite committed value and flush.
-
 NO-STEAL: do not allow a page modified by an uncommitted txn to be flushed.
-
 FORCE: require all pages modified by a txn to be flushed to disk before commit.
-
 NO-FORCE: do not require to flush every modified page to disk before commit.
 
 ## 2.1 What is the problem here?
@@ -73,11 +69,6 @@ Yes, the force policy requires that, before committing, the dirty pages affected
 
 # 3 ARIES  basic principle:
 
-
-
----
-
-
 What is the basic principle of a Write-Ahead Log (WAL)?
 
 - Use WAL during txn execution
@@ -86,12 +77,14 @@ What is the basic principle of a Write-Ahead Log (WAL)?
 
 ---
 
+
 Which buffer pool policy does WAL-based recovery implement?
 Append all changes made by transactions to the DB to a log file.
 The DBMS must flush all relevant log records corresponding to changes that made a page dirty to disk before it can flush the page itself 
 
 
-# 4 Aries Example 
+# 4 Aries Example Part1
+
 
 
 ![](image/Pasted%20image%2020260124114748.png)
@@ -112,10 +105,12 @@ Not a problem, because
 ![](image/Pasted%20image%2020260124120201.png)
 
 
-## 4.3 The buffer manager wants to evict page with Disk PID=1. What steps are required to ensure consistency?
-
 ![](image/Pasted%20image%2020260124120248.png)
 
+## 4.3 The buffer manager wants to evict page with Disk PID=1. What steps are required to ensure consistency?
+
+It has to flush the page 1 into disk 
+in Dirty Page table, the row with PID=2  will be removed 
 
 ![](image/Pasted%20image%2020260124120303.png)
 
@@ -131,58 +126,79 @@ Not a problem, because
 
 ## 4.5 TXN1 wants to commit, What is requered for this 
 
+only all the logs entries unitl LSN 9  in WAL has to be flushed into DISK ,  因为 9 是 TXN1 最后的相关的 LSK
+
+其他的 table 中的信息， 例如 Active Transaction Table, Dirty Page table 中的信息 不需要 flush into disk
+
+如果不flush the log into Disk, 就无法  redo了 
+
+如果flush logs until LSN 5, 就看不到commit, DBSM 就会abort the transcation  ->  这样是不行的 
+
 ![](image/Pasted%20image%2020260124120425.png)
 
 
-# 5 Aries Example: If a crash happens now, what happens to our data structures?
+# 5 Aries Example Part2: If a crash happens now, what happens to our data structures?
 
-10 and 11  and two Pages table with PID=2 or 3 will be lost 
+what lost
+WAL tail in memory： LSN 10 and  LSN 11  
+pages2 and 3 in memory： two Pages table with PID=2 or 3 will be lost 
+ATT and DPT are lost. 
+Everything else is durable
+
 
 Which txns need to be aborted
-1. WAL tail in memory, pages2 and 3 in memory, ATT and DPT are lost. Everything else is durable
-2. T2 did not commit, and therefore needs to abort. T1's commit log entry is persisted on disk
+1. T2 did not commit, and therefore needs to abort. T1's commit log entry is persisted on disk
 
 ![](image/Pasted%20image%2020260124121105.png)
 
+# 6 Aries Example Part3: Redo 
+## 6.1 T1 committed, but what about its updates?
 
-## 5.1 T1 committed, but what about its updates?
+==T1 已经committed，  data is already in Disk,  但是disk坏了 所以 t1 就需要redo  ==
+
 
 ![](image/Pasted%20image%2020260124121129.png)
 
 
-## 5.2 How do we find out what we need to redo?
+## 6.2 How do we find out what we need to redo?
 
-- Analyse the log in forward direction and populate ATT and DPT
-- Oldest recLSN in DPT tells us where to start REDO
+- Analyse the log in forward direction and populate/rebuild ATT and DPT  
+    - ==重建  ATT  ， 已经 committed the txn 就不要填入表了==
+    - ==重建  DPT  ， 已经 committed the txn 就也要填入表了==
+- DPT 中找 几个 txn 中 的 smallest Oldest LSN ( recLSN ) （that dirtied the Page ） in DPT tells us where to start REDO  ，从这里开始 redo到 all  logs in WAL 中 last log entry  
 
 ![](image/Pasted%20image%2020260124121144.png)
 
 ![](image/Pasted%20image%2020260124121151.png)
 
 
-## 5.3 Replay the log to restore state for all committed (winner) txns
+## 6.3 Replay the log to restore state for all committed (winner) txns
 
-## 5.4 Do we really need to redo everything?
+## 6.4 Do we really need to redo everything?
+
+no, not everything 
+==Oldest LSN of  this commmited txn ( recLSN ) （that dirtied the Page ） in DPT tells us where to start REDO  ，从这里开始 redo 到 所有log in WAL 的最下面一项==
+
 
 ![](image/Pasted%20image%2020260124121323.png)
 
-# 6 Aries Example: Undo 
+# 7 Aries Example: Undo 
 
-1. What txns do we need to UNDO?
-2. Where do we start to UNDO?: redo the coperationen which do undo 
-3. what actions ado we need to UNDO here
+1. What txns do we need to UNDO?   uncommitted txn
+2. Where do we start to UNDO?: 
+    1. ==fins the biggest nummer in LastLSN in ATT  to start UNDO  ，从这里开始 redo到 WAL 中 所有 的 LSN  ， 到wal 的最上面 ==
+3. what actions we need to UNDO here: 2,6,7 
 
 
 ![](image/Pasted%20image%2020260124121431.png)
 
 
-# 7 Aries Example:  Checkpoint 
+# 8 Aries Example:  Checkpoint 
 What if the database has been running for a year without failure?How could we improve on recovery performance?
-
 use checkpoint. This point, the excution are complete, gerabge the log into checkpoint and make a snapshot 
 
 
-# 8 Overview ARIES Algorithm
+# 9 Overview ARIES Algorithm
 1. AnalysisPhase
 2. RedoPhase  
 3. UndoPhase
@@ -191,7 +207,7 @@ Why do we need to start REDO at the smallest recLSN ? Do we need to continue log
 
 ![](image/Pasted%20image%2020260124120808.png)
 
-## 8.1 Shadow Paging
+## 9.1 Shadow Paging
 
 Maintain two versions of the database incl. page table, master and shadow Copy pages on write to shadow page table  
 On txn commit, flush pages and swap shadow with master
@@ -199,11 +215,75 @@ On txn commit, flush pages and swap shadow with master
 1. What does the DBMS need to do on recovery after a crash?
 2. Which buffer pool policies does shadow paging implement?
 3. Why does shadow paging lead to fragmentation on disk?
-4. 4. Why does WAL-based recovery outperform shadowpaging?
+4. Why does WAL-based recovery outperform shadowpaging?
 
-# 9 Quiz
+维护数据库的两个版本，包括页表：主版本和影子版本  
+在写入时，将页面复制到影子页表  
+在事务提交时，刷新页面并交换影子页表与主页表
 
-## 9.1 Aries 
+1. 崩溃后恢复时，数据库管理系统需要做什么？
+2. 影子分页实现了哪种缓冲池策略？
+3. 为什么影子分页会导致磁盘碎片？
+4. 为什么基于 WAL 的恢复优于影子分页？
+
+### 9.1.1 崩溃后恢复时，DBMS 需要做什么？
+
+**影子分页的恢复非常简单：**
+- 不需要做任何事（或者只需要丢弃影子页表）
+- 因为事务提交前，所有修改都在影子页表中，主页表未被修改
+- 如果崩溃发生在提交前：直接丢弃影子页表，回到主版本
+- 如果崩溃发生在提交后：主版本已经是新版本，影子页表可丢弃
+
+**恢复步骤：**
+- 检查当前使用的是主页表还是影子页表
+- 如果是影子页表且事务未提交 → 丢弃影子页表
+- 如果是影子页表且事务已提交 → 切换为主页表
+
+### 9.1.2 影子分页实现了哪种缓冲池策略？
+
+**影子分页实现的是 NO-STEAL + FORCE 策略**
+- **NO-STEAL**：事务提交前，不允许将未提交的修改写回磁盘（修改写在影子页面中）
+- **FORCE**：事务提交时，强制将所有修改的页面写回磁盘
+
+这样做的结果是：
+- 不需要 UNDO（因为未提交的修改不在磁盘上）
+- 不需要 REDO（因为提交时所有修改已写回）
+
+### 9.1.3 为什么影子分页会导致磁盘碎片？
+
+**原因：**
+- 每次更新页面时，不是就地更新，而是**写到一个新位置**（写时复制）
+- 随着时间的推移，同一个逻辑页面在磁盘上有多个物理版本
+- 旧的页面变成"空洞"，无法被有效重用
+- 导致磁盘空间利用率下降，文件系统碎片增加
+- 需要定期压缩或整理
+
+
+### 9.1.4 为什么基于 WAL 的恢复优于影子分页？
+
+| 方面 | 影子分页 | WAL（预写日志） |
+|------|---------|----------------|
+| **写开销** | 每次修改都写整个页面 | 只写日志记录（小得多） |
+| **磁盘碎片** | 严重，需定期整理 | 无额外碎片 |
+| **并发** | 页表交换需全局锁 | 细粒度锁，并发高 |
+| **恢复速度** | 恢复快（几乎不需要） | 需要扫描日志，但可优化 |
+| **空间利用率** | 低（多个版本） | 高（就地更新） |
+| **实现复杂度** | 中等 | 较高 |
+
+**WAL 的主要优势：**
+- **写日志是顺序 I/O**，比随机写页面快得多
+- **支持更细粒度的并发控制**
+- **不会产生磁盘碎片**
+- **恢复灵活**：可以用检查点控制恢复时间
+
+
+**结论：**
+虽然影子分页恢复简单，但**写时复制的开销、磁盘碎片和并发限制**使其在大规模系统中不如 WAL 流行。现代数据库（如 PostgreSQL, MySQL InnoDB, Oracle）都使用 WAL。
+
+
+# 10 Quiz
+
+## 10.1 Aries 
 
 ![](image/Pasted%20image%2020260124202633.png)
 
@@ -221,7 +301,7 @@ On txn commit, flush pages and swap shadow with master
 
 ---
 
-**1. 分析阶段（从 LSN 7 扫描到日志尾）**
+### 10.1.1 分析阶段（从 LSN 7 扫描到日志尾)
 
 初始（LSN 7 时）：
 - TT = {T1:4, T2:6, T3:5}
@@ -232,36 +312,86 @@ On txn commit, flush pages and swap shadow with master
 **LSN 8**: T1 UPDATE (2,4,"d","D")
 - TT: T1.lastLSN = 8（更新）
 - DPT: 新增页 2？recLSN 应为此页第一次变脏时的 LSN，此前 DPT 无页 2，因此添加 2:8
+得到
+- TT = {T1:4, T2:8, T3:5}
+- DPT = {2:8, 3:4}
+
+---
 
 **LSN 9**: T3 UPDATE (1,5,"e","E")
 - TT: T3.lastLSN = 9
 - DPT: 新增页 1，recLSN=9
 
+
+得到
+- TT = {T1:4, T2:8, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+---
+
 **LSN 10**: T1 COMMIT
 - TT: 移除 T1（因为提交后事务不再需要恢复）
+- DPT: 不移除 T1
+
+
+得到
+- TT = { T2:8, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+---
+
 
 **LSN 11**: T1 END_TRANSACTION（通常只是记录，不改变分析阶段状态，可能忽略）
 
+
+
+得到
+- TT = { T2:8, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+----
+
+
 **LSN 12**: END_CHECKPOINT（无影响）
+
+
+得到
+- TT = { T2:8, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+----
 
 **LSN 13**: T2 UPDATE (3,6,"f","F")
 - TT: T2.lastLSN = 13
 - DPT: 页 3 已经在 DPT 中（recLSN=4），不需更改
 
+
+得到
+- TT = { T2:8, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+---
+
 **LSN 14**: T2 UPDATE (2,7,"g","G")
 - TT: T2.lastLSN = 14
 - DPT: 页 2 已在 DPT 中（recLSN=8），不需更改
 
+
+得到
+- TT = { T2:14, T3:5}
+- DPT = {1:9, 2:8, 3:4}
+
+
 扫描到日志尾后（LSN 14），T2 和 T3 未提交，T1 已提交并从 TT 移除。
 
----
 
-**2. 分析阶段结束时的表**
+### 10.1.2 分析阶段结束时的表
 
 **事务表 (TT)：**
+- T1 已提交 → 不在表中
 - T2: lastLSN = 14
 - T3: lastLSN = 9
-- T1 已提交 → 不在表中
+
 
 **脏页表 (DPT)：**
 - 页 3: recLSN = 4（初始就有）
@@ -270,7 +400,7 @@ On txn commit, flush pages and swap shadow with master
 
 ---
 
-**3. 填写答案**
+**填写答案**
 
 Transaction table:
 | TID | lastLSN |
@@ -286,11 +416,8 @@ Dirty page table:
 | 2   | 8       |
 | 3   | 4       |
 
----
 
-如果你需要，我可以把每个 LSN 处理后的 TT 和 DPT 变化详细列出。
-
-## 9.2 Aries
+## 10.2 Aries
 
 **Select the action taken during the undo passes for the UPDATE actions in the drop-down menus in the log above.**
 
@@ -373,6 +500,7 @@ DPT = {1:4, 2:5}
 ---
 
 表中“Undo Pass”列打钩的记录是 LSN=6,8,9,13,14。  
+
 但 LSN 9 是 T2 的更新，T2 已提交，为什么打钩？可能题目的表是“恢复过程中可能需要撤销的记录”预判，但实际撤销阶段只撤销败者事务（T1,T3）的记录，所以 LSN 9（T2）不应该被撤销。  
 可能是表格排版错位，或者他们假设所有未在检查点提交的事务的更新都要撤销（但 T2 在检查点开始时未提交，在 LSN 10 提交了，所以提交后不用撤销）。  
 从分析阶段结果看，撤销的更新记录应该是：
@@ -396,7 +524,10 @@ T1: LSN 8, 6, 4
 
 ![](image/Pasted%20image%2020260124203911.png)
 
-## 9.3 Aries
+## 10.3 Aries
+
+ select the action taken during the redo passes for the UPDATE actions in the drop down menus in the log above   
+ 就是选  redo 的 项 
 
 ![](image/Pasted%20image%2020260124203959.png)
 
@@ -409,13 +540,12 @@ T1: LSN 8, 6, 4
 已知 LSN 7 时初始状态：
 
 - **TT**：T1=4, T2=6, T3=3
-    
 - **DPT**：页1=4, 页2=5
     
 
 ---
 
-### 9.3.1 **逐条分析更新**
+### 10.3.1 **逐条分析更新**
 
 
 **LSN 8**：T2 UPDATE (1, 4, "d", "D")

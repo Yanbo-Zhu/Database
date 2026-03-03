@@ -7,8 +7,6 @@
 - Parallelism only on the I/O level possible through using multiple disks. 
 - Only one CPU core involved in the processing.
 
-
-
 Data volume keeps growing
 - Data Warehouse sizes of about 1PB are not uncommon!
 - Some businesses produce >1TB of new data per day!  
@@ -23,23 +21,57 @@ Analysis queries are becoming more and more complex
 
 —> Divide work over multiple machines /nodes! (Chapter 20 in textbook)
 
+
+- 单个系统上运行的单个数据库管理实例管理所有数据。
+- 查询执行由单个线程运行——无需同步和通信。
+- 并行性仅能通过使用多个磁盘在 I/O 层面上实现。
+- 仅涉及一个 CPU 核心进行处理。
+
+**数据量持续增长**
+- 数据仓库大小达到约 1PB 并不罕见！
+- 一些企业每天产生超过 1TB 的新数据！
+- 科学场景的数据量更大（例如，大型强子对撞机实验每年产生约 15PB 数据）
+
+**某些系统需要支持极高吞吐量的事务处理**
+- 尤其是金融机构
+
+**分析查询变得越来越复杂**
+- 发现统计模式是高度计算密集型的
+- 可能需要多次扫描数据
+
+—> **将工作分配到多台机器/节点上！**（教材第 20 章）
+
+
 ---
 
-First Things First: Parallel vs. Distributed
+## 1.1 First Things First: Parallel vs. Distributed
 
 - There are two basic approaches for dividing work across machines: Parallelization & Distribution
 - In a parallel database, machines ...
-    - ... are homogeneous, and tightly coupled (low-latency, high-bandwidth).
-        - • Racks or Clusters with direct network connections.
-        - • • Single multi-core / multi-processor system.
-    - ... nodes work together, and cannot act autonomously.
+    - are homogeneous, and tightly coupled (low-latency, high-bandwidth).
+        - Racks or Clusters with direct network connections.
+        - Single multi-core / multi-processor system.
+    - nodes work together, and cannot act autonomously.
     - —> Mainly optimized for performance
 - In a distributed database, machines
-    - ... can be heterogeneous, and are loosely coupled (high-latency, low-bandwidth):
+    - can be heterogeneous, and are loosely coupled (high-latency, low-bandwidth):
         - Long network links, potentially over the Internet.  
-    - • ... might act independently (e.g. to answer a local query without network cost)
+    - might act independently (e.g. to answer a local query without network cost)
     - —> Mainly optimized for reliability.
 
+
+- 将工作分配到多台机器上有两种基本方法：**并行化**与**分布化**
+- 在**并行数据库**中，机器...
+    - 是**同构**的，并且是**紧耦合**的（低延迟、高带宽）
+        - 具有直接网络连接的机架或集群
+        - 单个多核/多处理器系统
+    - 节点**协同工作**，不能独立行动
+    - —> 主要针对**性能**进行优化
+- 在**分布式数据库**中，机器...
+    - 可以是**异构**的，并且是**松耦合**的（高延迟、低带宽）
+        - 长距离网络链接，可能跨越互联网
+    - 可能**独立行动**（例如，回答本地查询而不产生网络开销）
+    - —> 主要针对**可靠性**进行优化
 
 
 # 2 Background
@@ -57,10 +89,23 @@ how much faster we get by running the parallel algorithm on p nodes The highest 
 The highest achievable speedup is linear speedup
 - Doubling the number of nodes doubles the speed (halves the runtime).
 
+加速比（Speedup）
+讨论并行算法时最重要的度量指标：加速比
+
+定义为：
+顺序程序的运行时间 ÷ 在 p 个节点上运行的并行程序的运行时间
+
+描述的是：
+在 p 个节点上运行并行算法能使我们加快多少
+
+可实现的最高加速比是线性加速比：
+节点数量翻倍，速度翻倍（运行时间减半）
+
+
 ---
 What About Super-Linear Speedups?
 
-Double the main memory, you can load bigger data to larger page, the twice as fast 000000000000000000000000000000000000000000000000000000000000000000000000
+Double the main memory, you can load bigger data to larger page, the twice as fast 
 
 ![](image/Pasted%20image%2020260124123630.png)
 
@@ -71,7 +116,13 @@ Additional nodes usually also give us more memory, meaning we can keep larger pa
 In multi-core systems: Core 1 might access a piece of data, leading to it already being available in the L2 cache when Core 2 needs it later.  
 In parallel dynamic programming: Threads might skip work if a different thread has already previously computed a required intermediate result.
 
----
+**处理器数量翻倍 => 程序运行速度快了不止两倍。这真的可能吗？**
+
+**确实可能发生！潜在原因：**
+- 额外的节点通常也给我们带来**更多的内存**，这意味着我们可以将更大比例的数据缓存到内存中。
+- 在多核系统中：核心 1 可能访问某块数据，导致当核心 2 稍后需要时，该数据**已经在 L2 缓存中可用**。
+- 在并行动态规划中：如果另一个线程已经预先计算了所需的中间结果，线程**可能会跳过某些工作**。
+
 
 ## 2.2 Amdahl’s Law
 
@@ -87,6 +138,20 @@ However, for “real-world” problems f is usually < 1.0
 Strong scaling is defined as how the solution time varies with the number of processors for a fixed total problem size.
 
 
+**加速的极限**
+
+理论上，可达到的最优加速比是线性的。  
+**阿姆达尔定律**："最大加速比由程序中不可并行化的部分决定"：
+
+- **P**，程序中可并行化的比例
+- **1-P**，程序中必须串行的比例
+- **N**，核心数量
+
+对于 **f=1.0**（令人尴尬的并行）的问题，我们实际上可以达到理想的（线性）加速比。  
+然而，对于"现实世界"的问题，**f 通常小于 1.0**。  
+**强扩展**定义为：在固定总问题规模下，求解时间如何随处理器数量变化。
+
+
 ![](image/Pasted%20image%2020260124123700.png)
 
 
@@ -98,14 +163,16 @@ According to Amdahl's Law, in a best-case scenario, the theoretical speedup of a
 ## 2.3 Gustafson's Law
 
 ‣ Problem sizes tend to grow over time and with increasing available processing power
-
 ‣ Gustafson's law: More processors are usually added to solve a larger problem in the same time
-
 ‣ The larger the problem gets the larger the speed-up becomes
-
 ‣ A growing problem can be efficiently handled using parallelization
-
 ‣ Weak scaling is defined as how the solution time varies with the number of processors for a fixed problem size per processor.
+
+‣ 问题规模往往会随时间推移和可用处理能力的增加而增长
+‣ **古斯塔夫森定律**：通常会添加更多处理器以在相同时间内解决更大的问题
+‣ 问题规模越大，加速比就变得越大
+‣ 不断增长的问题可以使用并行化高效处理
+‣ **弱扩展**定义为：在**每个处理器的问题规模固定**的情况下，求解时间如何随处理器数量变化
 
 
 ![](image/Pasted%20image%2020260124123734.png)
@@ -132,16 +199,16 @@ According to Amdahl's Law, in a best-case scenario, the theoretical speedup of a
 ‣ Sites may not be aware of each other and may provide only limited facilities for cooperation in transaction processing
 
 ‣ **同构分布式数据库**：  
-‣ 所有节点具有相同的软件  
-‣ 彼此感知并同意协作处理用户请求  
-‣ 每个节点在修改模式或软件的权利上放弃部分自主权  
-‣ 对用户表现为单一系统
+    ‣ 所有节点具有相同的软件  
+    ‣ 彼此感知并同意协作处理用户请求  
+    ‣ 每个节点在修改模式或软件的权利上放弃部分自主权  
+    ‣ 对用户表现为单一系统
 
 ‣ **异构分布式数据库**：  
-‣ 不同节点可能使用不同的模式和软件  
-‣ 模式差异是查询处理的主要问题  
-‣ 软件差异是事务处理的主要问题  
-‣ 节点之间可能彼此不感知，在事务处理中仅提供有限的协作功能
+    ‣ 不同节点可能使用不同的模式和软件  
+    ‣ 模式差异是查询处理的主要问题  
+    ‣ 软件差异是事务处理的主要问题  
+    ‣ 节点之间可能彼此不感知，在事务处理中仅提供有限的协作功能
 
 ---
 
@@ -161,9 +228,11 @@ Several nodes with multiple CPUs, each node has its private memory Single attach
 Sever share the same data „source“
 
 For example, cloud nodes with distributed file system like S3 for Amazon
+
 ![](image/Pasted%20image%2020260124125234.png)
 
 ## 3.3 Shared Nothing
+
 Each node has it own set of CPUs, memory and disks attached Data needs to be partitioned over the nodes  
 Data is exchanged through direct node-to-node communication
 
@@ -228,8 +297,6 @@ Task Parallelism:
 
 ## 4.2 Modes of Query Parallelism (Inter-Query and Intra-Query  Parallelism )
 
-
-
 Inter-Query Parallelism (multiple concurrent queries)
 - Necessary for efficient resource utilization: While one query waits (e.g. for I/O), another one executes.
 - Requires concurrency control (locking mechanisms) to gurantee transactional properties (then "I" in ACID)
@@ -243,24 +310,15 @@ Intra-Query Parallelism (parallel processing of a single query)
 
 
 **查询间并行（多个并发查询）**
-
 - **必要性**：实现高效资源利用——当一个查询等待时（例如等待I/O），另一个查询可以执行。
-    
 - **要求**：需要并发控制（锁机制）来保证事务属性（即ACID中的“I”——隔离性）。
-    
 - **→ 适用场景**：对高事务性场景（OLTP）非常重要。
-    
 
 **查询内并行（单个查询的并行处理）**
-
 - **I/O并行**：从多个磁盘并发读取
-    
     - 隐藏实现：硬件RAID
-        
 - **数据并行**：多个线程在同一操作符上工作。例如：并行排序。
-    
 - **流水线并行**：查询计划中多个流水线部分并行运行。
-    
 - **→ 适用场景**：对复杂分析任务（OLAP）非常重要。
 
 
@@ -269,14 +327,9 @@ Intra-Query Parallelism (parallel processing of a single query)
 ![](image/Pasted%20image%2020260124130043.png)
 
 **操作符间并行（Inter-operator Parallelism）** 是指查询计划中的**不同操作符**同时执行。常见的实现方式包括：
-
 1. **流水线并行（Pipeline Parallelism）**：一个操作符的输出直接作为下一个操作符的输入，两者同时运行。
-    
     - 例如：`Scan → Filter → Join` 中，Scan 产生数据时 Filter 就开始处理，同时 Join 可能也在处理之前已通过 Filter 的数据。
-        
 2. **独立分支并行**：查询计划有多个独立分支时，可以同时执行。
-    
-
 因此，操作符间并行允许多个操作符并发运行，从而提升查询性能。
 
 
@@ -290,28 +343,18 @@ Intra-Query Parallelism (parallel processing of a single query)
     - High synchronization overhead between the different parts of the pipeline
     - Mostly limited to lower degree of parallelism (not too many pipelines per query) 
     - Can easily lead to imbalanced parallelism (Thread 1: Build Hashtable for 1TB relation, Thread 2: Build Hashtable for 1MB relation)
-
 - Due to these problems, Pipeline Parallelism is often only applicable to a certain, small degree
 
 
 - **流水线并行也被称为操作符间并行**：
-    
     - 称为“操作符间”是因为并行发生在不同的操作符之间
-        
 - **同时执行多个流水线**：
-    
     - 适用性有限，仅当存在多个流水线且不完全相互依赖时可行
-        
     - 支持任务并行
-        
 - **存在的问题**：
-    
     - 不同流水线部分之间同步开销大
-        
     - 并行度通常受限（每个查询不能有太多流水线）
-        
-    - 容易导致并行不均衡（例如：线程1为1TB的关系构建哈希表，线程2为1MB的关系构建哈希表）
-        
+    - 容易导致并行不均衡（例如：线程1为1TB的关系构建哈希表，线程2为1MB的关系构建哈希表
 - 由于这些问题，流水线并行通常只适用于较低程度的并行化
 
 
@@ -330,21 +373,15 @@ Some operations possibly need a view of larger portions of the data:
 - Different operators need different sets
 
 **数据被划分为多个子集：**
-
 - 大多数操作不需要数据的完整视图
-    
     - 例如：“筛选”操作一次只查看单个元组
-        
 - 子集可以独立处理，因此能够并行执行
-    
 
 **并行度最高可达可能子集的数量**  
 • 对于“筛选”操作：最高可达元组数量
 
 **某些操作可能需要更大范围的数据视图：**
-
 - 例如：分组/聚合操作需要所有具有相同分组键的元组
-    
 - 不同操作符需要不同的数据子集
 
 ---
@@ -357,7 +394,13 @@ Some operations possibly need a view of larger portions of the data:
     - Coordinator also excutes the partial plan on his part of the data 
 - Collects partial results and finalizes them (see next slide)
 
-
+- 客户端向集群中的一个节点发送 SQL 查询
+    - 该节点成为**协调器**
+- 协调器编译查询：
+    - 解析、检查、优化 • 并行化
+- 向集群中其他节点发送描述其任务的**部分计划**：
+    - 协调器也在其负责的数据部分上执行部分计划
+- 收集部分结果并**最终化**（见下一张幻灯片）
 
 ![](image/Pasted%20image%2020260124130256.png)
 
@@ -369,29 +412,27 @@ Some operations possibly need a view of larger portions of the data:
 - At some points, results from the sub-plans are collected
 - For more complex queries, results are not collected but re-distributed, for further parallel processing
 
+• 对于**无共享**和**共享磁盘**系统：
+- 子计划的多个实例在不同计算机上执行
+- 这些实例操作不同的数据分片或分区
+- 在某些节点，子计划的结果被收集起来
+- 对于更复杂的查询，结果不是被收集，而是被**重新分发**，以进行进一步的并行处理
+
 ![](image/Pasted%20image%2020260124131127.png)
 
 # 5 Distributed Data Storage  
 
 
-
 Challenges for Distribution
-
 ‣ Deciding what data goes where highly depend on the access pattern of the data 两个Repliacate 先弄那个
-
 ‣ Replication: System maintains multiple copies of data, stored in different sites, for faster retrieval and fault tolerance
-
 ‣ Fragmentation: Relation is partitioned into several fragments stored in distinct sites
-
 ‣ Replication and fragmentation can be combined: Relation is partitioned into several fragments: system maintains several identical replicas of each such fragment
 
 ‣ **数据放置决策高度依赖于数据的访问模式**  
 （这里原文 “两个Repliacate 先弄那个” 可能是中文输入错误，推测意思是 “决定先复制哪个数据”）
-
 ‣ **复制（Replication）**：系统在多个节点维护数据副本，以实现更快的检索和容错
-
 ‣ **分片（Fragmentation）**：关系被划分成多个片段，存储在不同节点
-
 ‣ **复制与分片可以结合使用**：关系被划分成多个片段，系统为每个片段维护多个相同的副本
 
 
@@ -429,14 +470,9 @@ Data Replication
 ‣ **并发控制复杂性增加**：对不同副本的并发更新可能导致数据不一致，除非采用特殊的并发控制机制  
 ‣ 一种解决方案：选择一个副本作为**主副本**，并在主副本上执行并发控制操作
 
-
-
-
 ---
 
-
 Data Fragmentation
-
 - Also called Partitioning the data means creating multiple disjoint sub-sets
     - Example: Sales data, every year gets its own partition  
 - For shared-nothing, data must be partitioned across nodes
@@ -447,15 +483,10 @@ Data Fragmentation
 **数据分片**
 
 - 也称为**数据分区**，即创建多个互不相交的子集
-    
     - 示例：销售数据，每年拥有自己的分区
-        
 - 对于**无共享架构**，数据必须在不同节点间进行分区
-    
 - **具有特定特性的分区会带来更多优势**：
-    
     - 如果可以证明所有相关数据（满足谓词条件的数据）都在某个分区中，那么某些查询可以仅在该分区上执行
-        
     - 当分区数据不再需要时（例如丢弃旧的销售数据），可以**直接整体删除分区**（数据被移出）
 
 
@@ -467,6 +498,14 @@ Each tuple is in exactly one partition
 Allow for parallel processing of partitions  
 Allows to place partitions where there are most often read
 
+
+将表划分为多个**水平分片**
+每个分片具有相同的模式
+每个元组恰好位于一个分区中
+允许对分区进行**并行处理**
+可以将分区放置在**最常被读取的位置**
+
+
 ![](image/Pasted%20image%2020260124131606.png)
 
 
@@ -476,14 +515,12 @@ Each set gets a tuple in a round
 all sets have guaranteed equal amount of tuples 
 no apparent relationship between tuples in one set
 
+
 Hash Partitioned:
 Define a set of partitioning columns
 Generate a hash value over those columns to decide the target set  
 All tuples with equal values in the partitioning columns are in the same set
 
-- **轮循分区（Round Robin）**：确实保证每个分区获得大致相等数量的元组（严格相等，如果元组总数可被分区数整除）。
-- **哈希分区（Hash-based Partitioning）**：**不保证**每个分区的元组数量相等。  
-    哈希分区的分布取决于**哈希键的分布**。如果某些哈希值出现频率更高，对应分区就会包含更多元组，从而导致数据倾斜（data skew）。
 
 Range Paritioned 
 Define a set of partitioning columns
@@ -495,11 +532,14 @@ All tuples on one set are in the same range
 - 每个分区按轮循方式依次获得一个元组
 - 保证所有分区拥有相同数量的元组
 - 同一分区内的元组之间没有明显关联
+- **轮循分区（Round Robin）**：确实保证每个分区获得大致相等数量的元组（严格相等，如果元组总数可被分区数整除）。
+
 
 **哈希分区（Hash Partitioned）**：
 - 定义一组分区列
 - 基于这些列生成哈希值以决定目标分区
 - 所有在分区列上具有相同值的元组位于同一分区
+- **哈希分区（Hash-based Partitioning）**：**不保证**每个分区的元组数量相等。 哈希分区的分布取决于**哈希键的分布**。如果某些哈希值出现频率更高，对应分区就会包含更多元组，从而导致数据倾斜（data skew）。
 
 **范围分区（Range Partitioned）**：
 - 定义一组分区列
@@ -531,8 +571,7 @@ Allows to place Attributes where they are most often read
 **优势**：允许将属性放置在最常被读取的位置
 
 
-## 5.3 Allocation
-
+## 5.3 Allocation： Assignment of partitioned table to nodes 
 Assignment of partitioned table to nodes 
 - Each partition can be assigned to one or more nodes
 - Decision depends on relation size and access patterns
@@ -541,7 +580,11 @@ Assignment of partitioned table to nodes
 
 # 6 Distributed Transactions  
 
+
+Each site has a local transaction manager  and a transaction coordinator
+
 ‣ Transaction may access data at several sites  
+
 ‣ Each site has a local transaction manager responsible for:
     ‣ Maintaining a log for recovery purposes  
     ‣ Participating in coordinating the concurrent execution of the transactions executing at that site
@@ -552,6 +595,8 @@ Assignment of partitioned table to nodes
     ‣ Coordinating the termination of each transaction that originates at the site, which may result in the transaction being committed at all sites or aborted at all sites
 
 ‣ **事务可能访问多个节点的数据**  
+
+
 ‣ **每个节点有一个本地事务管理器，负责：**  
 - 维护日志用于恢复  
 - 参与协调在该节点执行的事务的并发执行
@@ -596,25 +641,25 @@ put the result into , the commit place in node can be aborted
 
 
 Two-Phase Commit Algorithm
-
 1. VoteCollectionPhase:Coordinator contacts all the participants by sending the value proposed by the initiator and request their response.
-
 2. VoteCollectionPhase:Afterreceivingall the responses, the coordinator makes a decision to commit if all participants agreed upon the value or abort if someone disagrees.
-
 3. DecisionPhase:Coordinatorcontactsall participants again and communicates the commit or abort decision.
 
 
+**两阶段提交协议（2PC）的核心流程：**
+1. **投票收集阶段**：协调器联系所有参与者，发送发起者提议的值，并要求参与者响应。
+2. **投票收集阶段**：在收到所有响应后，如果所有参与者都同意该值，协调器做出提交决定；如果有人不同意，则做出中止决定。
+3. **决策阶段**：协调器再次联系所有参与者，并通知提交或中止的决定。
+
   ![](image/Pasted%20image%2020260124132744.png)
 
+## 6.4 third phase commit
 
-
-**两阶段提交协议（2PC）的核心流程：**
-
-1. **投票收集阶段**：协调器联系所有参与者，发送发起者提议的值，并要求参与者响应。
-    
-2. **投票收集阶段**：在收到所有响应后，如果所有参与者都同意该值，协调器做出提交决定；如果有人不同意，则做出中止决定。
-    
-3. **决策阶段**：协调器再次联系所有参与者，并通知提交或中止的决定。
+Problem if one node fails -> blocking , another node always waiting 
+address the problem:
+-  blocking: set time one, choose new leader
+- third phase commit: 
+    - add phase: new pre commit phase: if fails, leader will handle the pre-commit 
 
 
 # 7 Distributed Query Processing
@@ -627,7 +672,6 @@ Two-Phase Commit Algorithm
     ‣ Consider fragmentation
     ‣ Less predictability in cost model due to unpredictable network congestion, especially if the network is not used exclusively for the DBMS
 
-![](image/Pasted%20image%2020260124132809.png)
 
 ‣ **核心思想**：这只是**集中式查询处理的扩展**（源于 80 年代初的 System R* 等系统）
 
@@ -636,6 +680,10 @@ Two-Phase Commit Algorithm
 ‣ **利用数据复制**  
 ‣ **考虑数据分片**  
 ‣ **成本模型可预测性降低**：由于网络拥塞难以预测，特别是当网络并非专用于 DBMS 时
+
+
+![](image/Pasted%20image%2020260124132809.png)
+
 
 ## 7.1 Distributed Join Strategies
 
@@ -652,6 +700,9 @@ Two-Phase Commit Algorithm
 ‣ Many strategies possible, they have to consider: ‣ Amount of data being shipped, size of relations ‣ Cost of shipping data between sites  
 ‣ Processing capabilities at each node
 
+---
+
+
 ‣ **查询示例**：R ⋈ S ⋈ T，其中 R 在节点 S1，S 在节点 S2，T 在节点 S3  
 ‣ **查询发往 S1，最终结果必须返回 S1**
 
@@ -667,7 +718,12 @@ Two-Phase Commit Algorithm
 ‣ 每个节点的处理能力
 
 ## 7.2 General Transfer Strategies
-Initial Placement: R1, R2 on Node 1 T1, T2, T3, T4 on Node 2
+
+Initial Placement: R1, R2 on Node 1 
+T1, T2, T3, T4 on Node 2
+
+Broadcasting: Beneficial if one relations is much smaller than the other
+Partitioned Shuffling ( odd/even ): create in best case equally sized inputs 
 
 ![](image/Pasted%20image%2020260124133002.png)
 
@@ -688,11 +744,8 @@ Initial Placement: R1, R2 on Node 1 T1, T2, T3, T4 on Node 2
 ## 7.4 Outlook: new fast Networks
 
 ‣ Distributed DBMS Mantra: Data- Locality first!
-
 ‣ Complex partitioning schemes to leverage data-locality
-
 ‣ Complex communication avoiding schemes
-
 ‣ But: modern networks make it possible to achieve network bandwidth similar to the main memory bandwidth
 
 
@@ -723,27 +776,16 @@ Shared Nothing cannot compensate loss of a node easily:
 
 
 **数据库集群通常最多扩展到 64 或 128 个节点**：
-
 - 之后加速比的增长曲线趋于平缓
-    
 - 通信开销抵消了加速收益
-    
 - 硬件限制示例：DB2 最多支持 1000 个节点
-    
 
 **共享磁盘架构无法无限扩展**，因为总线和同步会成为瓶颈：
-
 - 对于更新：存在**缓存一致性**问题
-    
 - 对于读取：受 **I/O 带宽**限制
-    
 
 **无共享架构难以轻松应对节点失效**：
-
 - 在大型集群中，故障和中断非常常见
-    
 - 节点丢失意味着**数据丢失**
-    
     - 除非：数据被复制
-        
     - 但：**复制数据必须保持一致性**！这会带来很高的开销...
